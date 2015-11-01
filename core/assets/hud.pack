@@ -1,0 +1,18 @@
+hud.png
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+gauge1
+  rotate: false
+  xy: 5, 5
+  size: 109, 109
+  orig: 109, 109
+  offset: 0, 0
+  index: -1
+needle
+  rotate: false
+  xy: 123, 5
+  size: 26, 102
+  orig: 26, 102
+  offset: 0, 0
+  index: -1
