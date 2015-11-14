@@ -2,7 +2,6 @@ package com.shatter.system;
 
 import com.shatter.component.Collider;
 import com.shatter.component.Position;
-import com.shatter.component.Ship;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;

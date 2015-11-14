@@ -1,7 +1,9 @@
 package com.shatter.system;
 
+import com.shatter.component.Fracture;
 import com.shatter.component.Position;
 import com.shatter.component.Visual;
+
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
@@ -13,6 +15,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 public class RenderSystem extends IteratingSystem {
 	private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
 	private ComponentMapper<Visual> sm = ComponentMapper.getFor(Visual.class);
+	private ComponentMapper<Fracture> fm = ComponentMapper.getFor(Fracture.class);
 	private ShapeRenderer shapeRenderer;
 	private Camera camera;
 
@@ -25,6 +28,7 @@ public class RenderSystem extends IteratingSystem {
 	protected void processEntity(Entity entity, float deltaTime) {
 		Position pose = (Position) this.pm.get(entity);
 		Visual shape = (Visual) this.sm.get(entity);
+		Fracture fract = this.fm.get(entity);
 
 		if (pose.pos.x > camera.viewportWidth / 2) {
 			pose.pos.x = -camera.viewportWidth / 2;
@@ -44,6 +48,13 @@ public class RenderSystem extends IteratingSystem {
 		this.shapeRenderer.translate(pose.pos.x, pose.pos.y, 0.0F);
 		this.shapeRenderer.rotate(0.0F, 0.0F, 1.0F, pose.angle);
 		this.shapeRenderer.polygon(shape.VERTICES);
+		
+		if(fract != null){
+			for(int i = 0; i<fract.dt.size(); i++){
+				this.shapeRenderer.polygon(fract.dt.get(i).toVertexArray());
+				//this.shapeRenderer.circle(fract.dt.get(i).getCcCenter().x, fract.dt.get(i).getCcCenter().y, fract.dt.get(i).getCcRadius());
+			}
+		}
 
 	}
 
