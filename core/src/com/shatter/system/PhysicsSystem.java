@@ -1,10 +1,11 @@
 package com.shatter.system;
 
-import com.shatter.World;
+import com.shatter.TheWorld;
 import com.shatter.component.Bullet;
 import com.shatter.component.Collider;
 import com.shatter.component.Fracture;
 import com.shatter.component.Movement;
+import com.shatter.component.Physics;
 import com.shatter.component.Position;
 import com.shatter.component.Ship;
 import com.badlogic.ashley.core.ComponentMapper;
@@ -21,10 +22,11 @@ import com.badlogic.gdx.math.Vector2;
 public class PhysicsSystem extends IteratingSystem{
 	private ComponentMapper<Movement> mm = ComponentMapper.getFor(Movement.class);
 	private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
+	//private ComponentMapper<Physics> phm = ComponentMapper.getFor(Physics.class);
 	protected Engine engine;
-	private World world;
+	private TheWorld world;
 
-	public PhysicsSystem(Engine engine, World world) {
+	public PhysicsSystem(Engine engine, TheWorld world) {
 		super(Family.all(Movement.class, Position.class).get());
 		this.engine = engine;
 		this.world = world;
@@ -84,5 +86,14 @@ public class PhysicsSystem extends IteratingSystem{
 		p.pos.mulAdd(m.vel, deltaTime);
 		m.vel.mulAdd((m.acc).sub(damp), deltaTime);
 		p.angle += m.angVel * deltaTime;
+		
+
+		/* box2d physics
+		Physics ph = phm.get(entity);
+		if(ph != null){
+			ph.body.setLinearDamping(m.damp);
+			ph.body.setTransform(p.pos.mulAdd(m.vel, deltaTime), (float) Math.toRadians(p.angle));
+			ph.body.setLinearVelocity(m.vel.mulAdd((m.acc).sub(damp), deltaTime));
+		}*/
 	}
 }

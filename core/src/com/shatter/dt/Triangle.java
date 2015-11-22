@@ -49,7 +49,8 @@ public class Triangle {
 		float dx, dy;
 
 		if (Math.abs(G) < EPSILON) {
-			// this triangle is collinear - just find min+max values and use the midpoint
+			// this triangle is collinear - just find min+max values and use the
+			// midpoint
 			float minx = Math.min(this.a.x, this.b.x);
 			minx = Math.min(minx, this.c.x);
 			float miny = Math.min(this.a.y, this.b.y);
@@ -103,6 +104,17 @@ public class Triangle {
 	public boolean containsPoint(Triangle t) {
 		return a.equals(t.a) || a.equals(t.b) || a.equals(t.c) || b.equals(t.a) || b.equals(t.b) || b.equals(t.c)
 				|| c.equals(t.a) || c.equals(t.b) || c.equals(t.c);
+	}
+
+	/**
+	 * This method determines if this triangle contains a given point.
+	 * 
+	 * @param p
+	 *            The point given.
+	 * @return boolean The result of the comparison.
+	 */
+	public boolean containsPoint(Vector2 p) {
+		return a.equals(p) || b.equals(p) || c.equals(p);
 	}
 
 	/**

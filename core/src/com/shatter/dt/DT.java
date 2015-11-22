@@ -1,6 +1,8 @@
 package com.shatter.dt;
 
 import java.util.ArrayList;
+
+import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
 
 /**
@@ -24,6 +26,7 @@ public class DT {
 
 	Vector2[] points;
 	ArrayList<Triangle> dTriangles;
+	ArrayList<float[]> vDiagram;
 
 	/**
 	 * The constructor for the DT.
@@ -104,6 +107,12 @@ public class DT {
 			triangleBuffer = addPoint(vertex, triangleBuffer);
 		}
 
+		// TODO: delete triangles that are outside the maybe-concave polygon (=
+		// the point set as is)
+
+		// save DT including superTriangle for computing the VD
+		dTriangles = (ArrayList<Triangle>) triangleBuffer.clone();
+
 		// if triangle contains a vertex from supertriangle, remove triangle
 		for (int i = triangleBuffer.size() - 1; i >= 0; i--) {
 			if (triangleBuffer.get(i).containsPoint(superT)) {
@@ -112,7 +121,6 @@ public class DT {
 		}
 
 		// final delaunay triangle set
-		dTriangles = triangleBuffer;
 		return triangleBuffer;
 	}
 
@@ -168,7 +176,7 @@ public class DT {
 	 */
 	public ArrayList<Edge> removeDuplicateEdges(ArrayList<Edge> edges) {
 
-		// TODO: optimize from O(n^2) to O(n) with hash?
+		// TODO: optimize from O(n^2) to O(n) with hash map?
 		ArrayList<Edge> newEdges = new ArrayList<Edge>();
 
 		// iterate over all edges
@@ -193,6 +201,41 @@ public class DT {
 		}
 
 		return newEdges;
+	}
+
+	/**
+	 * This method calculates the voronoi diagram out of the given delaunay
+	 * triangulation with the aid of libgdx's convex hull calculation.
+	 * 
+	 * @return ArrayList<Float[]> the voronoi cells
+	 */
+	public ArrayList<float[]> getVD() {
+		ArrayList<float[]> cells = new ArrayList<float[]>();
+		ConvexHull hull = new ConvexHull();
+
+		for (Vector2 vertex : points) {
+			ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+			for (Triangle triangle : dTriangles) {
+				if (triangle.containsPoint(vertex)) {
+					triangles.add(triangle);
+				}
+			}
+			float[] vertices = new float[triangles.size() * 2];
+			for (int i = 0; i < triangles.size(); i++) {
+				Triangle t = triangles.get(i);
+				vertices[i * 2] = t.getCcCenter().x;
+				vertices[i * 2 + 1] = t.getCcCenter().y;
+			}
+			vertices = hull.computePolygon(vertices, false).toArray();
+
+			// TODO: intersection test to clip the VD to the maybe-concave
+			// polygon (= the point set as is)
+
+			cells.add(vertices);
+		}
+
+		vDiagram = cells;
+		return cells;
 	}
 
 }

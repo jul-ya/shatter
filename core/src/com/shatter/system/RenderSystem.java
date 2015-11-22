@@ -9,6 +9,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
@@ -50,6 +51,10 @@ public class RenderSystem extends IteratingSystem {
 		this.shapeRenderer.polygon(shape.VERTICES);
 		
 		if(fract != null){
+			for(int i = 0; i<fract.vd.size(); i++){
+				this.shapeRenderer.polygon(fract.vd.get(i));
+			}
+			this.shapeRenderer.setColor(Color.GREEN);
 			for(int i = 0; i<fract.dt.size(); i++){
 				this.shapeRenderer.polygon(fract.dt.get(i).toVertexArray());
 				//this.shapeRenderer.circle(fract.dt.get(i).getCcCenter().x, fract.dt.get(i).getCcCenter().y, fract.dt.get(i).getCcRadius());
