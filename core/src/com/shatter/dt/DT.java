@@ -25,7 +25,8 @@ import com.badlogic.gdx.math.Vector2;
 public class DT {
 
 	Vector2[] points;
-	ArrayList<Triangle> dTriangles;
+	ArrayList<Triangle> dTrianglesAll;
+	ArrayList<Triangle> dTrianglesInner;
 	ArrayList<float[]> vDiagram;
 
 	/**
@@ -39,14 +40,14 @@ public class DT {
 	}
 
 	/**
-	 * This method creates the corresponding SuperTriangle of the given amount
-	 * of points.
+	 * This method gets the extreme points (bounding rectangle) of the given
+	 * point set.
 	 * 
 	 * @param points
 	 *            The given points.
-	 * @return Triangle The SuperTriangle that contains all the points.
+	 * @return float[] the extremes in order: xMin, yMin, xMax, yMax
 	 */
-	public static Triangle getSuperTriangle(Vector2[] points) {
+	public float[] getMinMax(Vector2[] points) {
 
 		// calculate xmin, xmax, ymin, ymax = the outer points of the given set
 		float xMin = points[0].x;
@@ -69,6 +70,25 @@ public class DT {
 			}
 		}
 
+		return new float[] { xMin, yMin, xMax, yMax };
+	}
+
+	/**
+	 * This method creates the corresponding SuperTriangle of the given amount
+	 * of points.
+	 * 
+	 * @param points
+	 *            The given points.
+	 * @return Triangle the SuperTriangle that contains all the points
+	 */
+	public Triangle getSuperTriangle(Vector2[] points) {
+
+		float[] extremes = getMinMax(points);
+		float xMin = extremes[0];
+		float yMin = extremes[1];
+		float xMax = extremes[2];
+		float yMax = extremes[3];
+
 		float distanceX = xMax - xMin;
 		float distanceY = yMax - yMin;
 		float distanceMax = Math.max(distanceX, distanceY);
@@ -89,7 +109,7 @@ public class DT {
 	 * The real DT calculation using Bowyer-Watson incremental algorithm happens
 	 * here.
 	 * 
-	 * @return ArrayList<Triangles> The triangulated Triangle list.
+	 * @return ArrayList<Triangles> the triangulated Triangle list
 	 */
 	public ArrayList<Triangle> getDT() {
 
@@ -107,20 +127,23 @@ public class DT {
 			triangleBuffer = addPoint(vertex, triangleBuffer);
 		}
 
-		// TODO: delete triangles that are outside the maybe-concave polygon (=
-		// the point set as is)
-
 		// save DT including superTriangle for computing the VD
-		dTriangles = (ArrayList<Triangle>) triangleBuffer.clone();
+		// this provokes an unchecked cast because type is not available at
+		// runtime
+		dTrianglesAll = (ArrayList<Triangle>) triangleBuffer.clone();
 
-		// if triangle contains a vertex from supertriangle, remove triangle
+		// JUST for displaying reasons:
+		// if triangle contains a vertex from supertriangle or it is outside the
+		// polygon, remove triangle
 		for (int i = triangleBuffer.size() - 1; i >= 0; i--) {
-			if (triangleBuffer.get(i).containsPoint(superT)) {
+			if (triangleBuffer.get(i).containsPoint(superT)
+					|| !pointInsidePolygon(points, triangleBuffer.get(i).getCenter())) {
 				triangleBuffer.remove(i);
 			}
 		}
 
 		// final delaunay triangle set
+		dTrianglesInner = triangleBuffer;
 		return triangleBuffer;
 	}
 
@@ -214,28 +237,111 @@ public class DT {
 		ConvexHull hull = new ConvexHull();
 
 		for (Vector2 vertex : points) {
-			ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-			for (Triangle triangle : dTriangles) {
+			
+			//create point list from this list
+			ArrayList<Triangle> trianglesAll = new ArrayList<Triangle>();
+			
+			//use this list for clipping later
+			ArrayList<Triangle> trianglesInner = new ArrayList<Triangle>();
+			
+			//fill list with triangles that contain the vertex to determine the cell
+			for (Triangle triangle : dTrianglesAll) {
 				if (triangle.containsPoint(vertex)) {
-					triangles.add(triangle);
+					trianglesAll.add(triangle);
+					
+					//also fill the clipping list
+					if(dTrianglesInner.contains(triangle)){
+						trianglesInner.add(triangle);
+					}
 				}
 			}
-			float[] vertices = new float[triangles.size() * 2];
-			for (int i = 0; i < triangles.size(); i++) {
-				Triangle t = triangles.get(i);
-				vertices[i * 2] = t.getCcCenter().x;
-				vertices[i * 2 + 1] = t.getCcCenter().y;
+			
+			float[] vertices = new float[trianglesAll.size() * 2];
+			for (int i = 0; i < trianglesAll.size(); i++) {
+				Triangle t = trianglesAll.get(i);
+				Vector2 vPoint = new Vector2(t.getCcCenter().x, t.getCcCenter().y);
+				vertices[i * 2] = vPoint.x;
+				vertices[i * 2 + 1] = vPoint.y;
+
+				//TODO: RIGHT CLIPPING
+				if (!pointInsidePolygon(points, vPoint)) {
+					float distance = 0;
+					// find nearest midpoint in triangle in set
+					for (int j = 0; j < trianglesInner.size(); j++) {
+						
+						Vector2[] midpoints = trianglesInner.get(j).getMidpoints();
+						for(int k = 0; k < midpoints.length; k++){
+							if(distance > midpoints[k].dst(vPoint) || distance == 0){
+								distance = midpoints[k].dst(vPoint);
+								
+								//clip points to the nearest midpoint
+								//TODO: !!!also add outline vertex to cell point list!!!
+								vertices[i * 2] = midpoints[k].x;
+								vertices[i * 2 + 1] = midpoints[k].y;
+							}
+						}
+					}
+				}
 			}
 			vertices = hull.computePolygon(vertices, false).toArray();
 
 			// TODO: intersection test to clip the VD to the maybe-concave
-			// polygon (= the point set as is)
+			// polygon
 
 			cells.add(vertices);
 		}
 
 		vDiagram = cells;
 		return cells;
+	}
+
+	/**
+	 * This is a simple point in polygon test performed with an algorithm based
+	 * on the following reference that implements a Jordan scanline test:
+	 * https://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+	 * 
+	 * @param points
+	 *            The given point set.
+	 * @param testPoint
+	 *            The point to be tested.
+	 * @return boolean the check variable
+	 */
+	public boolean pointInsidePolygon(Vector2[] points, Vector2 testPoint) {
+
+		float[] extremes = getMinMax(points);
+		float xMin = extremes[0];
+		float yMin = extremes[1];
+		float xMax = extremes[2];
+		float yMax = extremes[3];
+
+		// bounding box test first
+		if (testPoint.x <= xMin || testPoint.x >= xMax || testPoint.y <= yMin || testPoint.y >= yMax) {
+			return false;
+		}
+
+		// jordan scanline test
+		boolean inside = false;
+		for (int i = 0, j = points.length - 1; i < points.length; j = i++) {
+			if ((points[i].y >= testPoint.y) != (points[j].y >= testPoint.y)
+					&& testPoint.x <= (points[j].x - points[i].x) * (testPoint.y - points[i].y)
+							/ (points[j].y - points[i].y) + points[i].x) {
+				inside = !inside;
+			}
+		}
+
+		return inside;
+	}
+
+	public ArrayList<Edge> getOutline(Vector2[] points) {
+		ArrayList<Edge> outline = new ArrayList<Edge>();
+		Vector2 lastPoint = points[points.length - 1];
+
+		for (int i = 0; i < points.length; i++) {
+			outline.add(new Edge(lastPoint, points[i]));
+			lastPoint = points[i];
+		}
+
+		return outline;
 	}
 
 }

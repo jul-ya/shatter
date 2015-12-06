@@ -202,4 +202,17 @@ public class Triangle {
 		return ccCenter;
 	}
 
+	/**
+	 * Calculates the center of the triangle.
+	 * 
+	 * @return Vector2 center
+	 */
+	public Vector2 getCenter() {
+		return new Vector2((a.x + b.x + c.x) / 3, (a.y + b.y + c.y) / 3);
+	}
+	
+	public Vector2[] getMidpoints(){
+		return new Vector2[]{new Vector2((a.x+b.x)/2,(a.y+b.y)/2), new Vector2((b.x+c.x)/2,(b.y+c.y)/2), new Vector2((c.x+a.x)/2,(c.y+a.y)/2)};
+	}
+
 }
