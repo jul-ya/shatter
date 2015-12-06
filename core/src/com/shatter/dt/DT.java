@@ -237,45 +237,52 @@ public class DT {
 		ConvexHull hull = new ConvexHull();
 
 		for (Vector2 vertex : points) {
-			
-			//create point list from this list
+
+			// create point list from this list
 			ArrayList<Triangle> trianglesAll = new ArrayList<Triangle>();
-			
-			//use this list for clipping later
+
+			// use this list for clipping later
 			ArrayList<Triangle> trianglesInner = new ArrayList<Triangle>();
-			
-			//fill list with triangles that contain the vertex to determine the cell
+
+			// fill list with triangles that contain the vertex to determine the
+			// cell
 			for (Triangle triangle : dTrianglesAll) {
 				if (triangle.containsPoint(vertex)) {
 					trianglesAll.add(triangle);
-					
-					//also fill the clipping list
-					if(dTrianglesInner.contains(triangle)){
+
+					// also fill the clipping list
+					if (dTrianglesInner.contains(triangle)) {
 						trianglesInner.add(triangle);
 					}
 				}
 			}
-			
-			float[] vertices = new float[trianglesAll.size() * 2];
+
+			// initialize the cell vertex array (leave space for the original
+			// vertex too - TODO: JUST if it's an outline point!)
+			float[] vertices = new float[trianglesAll.size() * 2 + 2];
+			vertices[vertices.length - 2] = vertex.x;
+			vertices[vertices.length - 1] = vertex.y;
+
 			for (int i = 0; i < trianglesAll.size(); i++) {
 				Triangle t = trianglesAll.get(i);
 				Vector2 vPoint = new Vector2(t.getCcCenter().x, t.getCcCenter().y);
 				vertices[i * 2] = vPoint.x;
 				vertices[i * 2 + 1] = vPoint.y;
 
-				//TODO: RIGHT CLIPPING
+				// clipping the vertices outside the polygon
 				if (!pointInsidePolygon(points, vPoint)) {
 					float distance = 0;
+
 					// find nearest midpoint in triangle in set
 					for (int j = 0; j < trianglesInner.size(); j++) {
-						
+
 						Vector2[] midpoints = trianglesInner.get(j).getMidpoints();
-						for(int k = 0; k < midpoints.length; k++){
-							if(distance > midpoints[k].dst(vPoint) || distance == 0){
+						for (int k = 0; k < midpoints.length; k++) {
+							if (distance > midpoints[k].dst(vPoint) || distance == 0) {
 								distance = midpoints[k].dst(vPoint);
-								
-								//clip points to the nearest midpoint
-								//TODO: !!!also add outline vertex to cell point list!!!
+
+								// clip points to the nearest midpoint =
+								// intersection point
 								vertices[i * 2] = midpoints[k].x;
 								vertices[i * 2 + 1] = midpoints[k].y;
 							}
@@ -284,9 +291,6 @@ public class DT {
 				}
 			}
 			vertices = hull.computePolygon(vertices, false).toArray();
-
-			// TODO: intersection test to clip the VD to the maybe-concave
-			// polygon
 
 			cells.add(vertices);
 		}
@@ -330,18 +334,6 @@ public class DT {
 		}
 
 		return inside;
-	}
-
-	public ArrayList<Edge> getOutline(Vector2[] points) {
-		ArrayList<Edge> outline = new ArrayList<Edge>();
-		Vector2 lastPoint = points[points.length - 1];
-
-		for (int i = 0; i < points.length; i++) {
-			outline.add(new Edge(lastPoint, points[i]));
-			lastPoint = points[i];
-		}
-
-		return outline;
 	}
 
 }

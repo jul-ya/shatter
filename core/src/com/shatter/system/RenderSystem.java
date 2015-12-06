@@ -51,13 +51,14 @@ public class RenderSystem extends IteratingSystem {
 		this.shapeRenderer.polygon(shape.VERTICES);
 		
 		if(fract != null){
-			for(int i = 0; i<fract.vd.size(); i++){
-				this.shapeRenderer.polygon(fract.vd.get(i));
-			}
 			this.shapeRenderer.setColor(Color.GREEN);
 			for(int i = 0; i<fract.dt.size(); i++){
 				this.shapeRenderer.polygon(fract.dt.get(i).toVertexArray());
 				//this.shapeRenderer.circle(fract.dt.get(i).getCcCenter().x, fract.dt.get(i).getCcCenter().y, fract.dt.get(i).getCcRadius());
+			}
+			this.shapeRenderer.setColor(Color.WHITE);
+			for(int i = 0; i<fract.vd.size(); i++){
+				this.shapeRenderer.polygon(fract.vd.get(i));
 			}
 		}
 
