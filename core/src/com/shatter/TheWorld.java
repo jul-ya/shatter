@@ -189,13 +189,6 @@ public class TheWorld {
 			vertices[(i * 2)] = ps.x;
 			vertices[(i * 2 + 1)] = ps.y;
 		}
-		
-		/*
-		 * float[] vertices; if(size == 2f){ vertices = new float[]{-2.0f, 0.0f,
-		 * -1.4f, 1.4f, 0f,2f,1.4f,1.4f,2f,0f, 1.4f,-1.4f,0f,-2f,-1.4f,-1.4f}; }
-		 * else { vertices = new float[]{-1.0f, 0.0f, -0.7f, 0.7f,
-		 * 0f,1f,0.7f,0.7f,1f,0f, 0.7f,-0.7f,0f,-1f,-0.7f,-0.7f}; }
-		 */
 
 		Visual v = new Visual();
 		v.setVERTICES(vertices);
@@ -205,35 +198,6 @@ public class TheWorld {
 		// add fracture component
 		Fracture f = new Fracture();
 		asteroid.add(f);
-
-		/*
-		 * determine min/max x/y float minX = vertices[0]; float maxX =
-		 * vertices[0]; float minY = vertices[0]; float maxY = vertices[0]; for
-		 * (int i = 1; i < vertices.length; i++) { if (i % 2 == 0) { if
-		 * (vertices[i] < minX) { minX = vertices[i]; } if (vertices[i] > maxX)
-		 * { maxX = vertices[i]; } } else { if (vertices[i] < minY) { minY =
-		 * vertices[i]; } if (vertices[i] > maxY) { maxY = vertices[i]; } } }
-		 * 
-		 * // generate points inside the asteroid and save them in the fracture
-		 * component // including intersection test (is point inside Asteroid?)
-		 * - jordan curve theorem int counter = 0; for (int k = 0; k <
-		 * (f.pointList.length)/2; k++) {
-		 * if(k<(f.pointList.length-vertices.length)/2){ boolean isInside =
-		 * false; while (!isInside) { f.pointList[(k * 2)] =
-		 * MathUtils.random(minX, maxX); f.pointList[(k * 2 + 1)] =
-		 * MathUtils.random(minY, maxY);
-		 * 
-		 * int j = vertices.length / 2 - 1; for (int i = 0; i < vertices.length
-		 * / 2; i++) { if (vertices[(i * 2)] < f.pointList[(k * 2)] &&
-		 * vertices[(j * 2)] >= f.pointList[(k * 2)] || vertices[(j * 2)] <
-		 * f.pointList[(k * 2)] && vertices[(i * 2)] >= f.pointList[(k * 2)]) {
-		 * if (vertices[(i * 2 + 1)] + (f.pointList[(k * 2)] - vertices[(i *
-		 * 2)]) / (vertices[(j * 2)] - vertices[(i * 2)]) (vertices[(j * 2 + 1)]
-		 * - vertices[(i * 2 + 1)]) < f.pointList[(k * 2 + 1)]) { isInside =
-		 * !isInside; } } j = i; } } } else { f.pointList[(k * 2)] =
-		 * vertices[(counter * 2)]; f.pointList[(k * 2 + 1)] = vertices[(counter
-		 * * 2 + 1)]; counter++; } }
-		 */
 
 		Vector2[] points = new Vector2[vertices.length / 2];
 		for (int i = 0; i < vertices.length / 2; i++) {
@@ -267,7 +231,7 @@ public class TheWorld {
 	 * 
 	 * @return Entity The asteroid entity.
 	 */
-	public Entity createAsteroidDT(Vector2 pos, float[] vertices) {
+	public Entity createAsteroidVD(Vector2 pos, float[] vertices) {
 		Entity asteroid = new Entity();
 
 		Position p = new Position();
@@ -288,7 +252,7 @@ public class TheWorld {
 		v.setCOLOR(Color.WHITE);
 		asteroid.add(v);
 
-		// add fracture component
+		/*add fracture component
 		Fracture f = new Fracture();
 		asteroid.add(f);
 
@@ -302,7 +266,7 @@ public class TheWorld {
 		f.vd = d.getVD();
 
 		System.out.println(f.dt.size());
-		System.out.println(f.vd.size());
+		System.out.println(f.vd.size());*/
 
 		Collider c = new Collider();
 		c.setRadius(1f);

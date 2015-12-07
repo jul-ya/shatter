@@ -58,19 +58,16 @@ public class PhysicsSystem extends IteratingSystem{
 		for(int i = 0; i<100; i++){
 			world.createParticle(e.getComponent(Position.class).pos.x, e.getComponent(Position.class).pos.y, (float) (Math.random()*360), (float) (Math.random()*20));
 		}
-		if(e.getComponent(Collider.class).radius >= 3f){
-			//if it was a big one, spawn new fractures (1 less than there has been)
-			for(int i = 1; i < e.getComponent(Fracture.class).dt.size(); i++){
-				float[] vertices = e.getComponent(Fracture.class).dt.get(i).toVertexArray();
-				world.createAsteroidDT(new Vector2(e.getComponent(Position.class).pos.x, e.getComponent(Position.class).pos.y), vertices);
+		if(e.getComponent(Collider.class).radius >= 2f){
+			//if it was a big one with voronoi cells, spawn new fractures (1 less than there has been)
+			for(int i = 1; i < e.getComponent(Fracture.class).vd.size(); i++){
+				float[] vertices = e.getComponent(Fracture.class).vd.get(i);
+				world.createAsteroidVD(new Vector2(e.getComponent(Position.class).pos.x, e.getComponent(Position.class).pos.y), vertices);
 			}
-			//if it was a big one, spawn two new on the asteroids position
-			//world.createAsteroid(new Vector2(e.getComponent(Position.class).pos.x, e.getComponent(Position.class).pos.y), 1f);
-			//world.createAsteroid(new Vector2(e.getComponent(Position.class).pos.x, e.getComponent(Position.class).pos.y), 1.5f);
 		} else {
-			//if it was a small one, spawn new one randomly
+			//if it was a small one without voronoi cells, spawn new one randomly
 			if((int) (Math.random()*3)%2 != 0){
-				world.createAsteroid(new Vector2(MathUtils.random(-50,50), MathUtils.random(-50, 50)), 1f);
+				world.createAsteroid(new Vector2(MathUtils.random(-50,50), MathUtils.random(-50, 50)), 1.5f);
 			} else {
 				world.createAsteroid(new Vector2(MathUtils.random(-50,50), MathUtils.random(-50, 50)), 2f);
 			}

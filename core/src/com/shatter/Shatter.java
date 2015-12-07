@@ -66,7 +66,7 @@ public class Shatter extends ApplicationAdapter {
 		// spawning some asteroids at startup
 		for (int i = 0; i < 10; i++) {
 			if ((int) (Math.random() * 3) % 2 != 0) {
-				world.createAsteroid(new Vector2(MathUtils.random(-50, 50), MathUtils.random(50, 50)), 1f);
+				world.createAsteroid(new Vector2(MathUtils.random(-50, 50), MathUtils.random(50, 50)), 1.5f);
 			} else {
 				world.createAsteroid(new Vector2(MathUtils.random(50, 50), MathUtils.random(-50, 50)), 2f);
 			}
