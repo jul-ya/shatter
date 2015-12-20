@@ -123,7 +123,7 @@ public class DT {
 		// for each point in the point set
 		for (Vector2 vertex : points) {
 			// TODO: O(n^2) - optimize by sorting vertices along the x-axis and
-			// then only circumcircle check triangles that are on the right
+			// then only circumcircle check triangles that are on the right = O(n^1.5)
 			triangleBuffer = addPoint(vertex, triangleBuffer);
 		}
 
