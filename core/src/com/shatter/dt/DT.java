@@ -24,9 +24,25 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class DT {
 
+	/**
+	 * The points to be triangulated.
+	 */
 	Vector2[] points;
+
+	/**
+	 * The list of all triangles including the supertriangle.
+	 */
 	ArrayList<Triangle> dTrianglesAll;
-	ArrayList<Triangle> dTrianglesInner;
+
+	/**
+	 * The list of all triangles that share a point with the polygon outline,
+	 * excluding all the supertriangle triangles.
+	 */
+	ArrayList<Triangle> dTrianglesOutline;
+
+	/**
+	 * The list of Voronoi diagram cells.
+	 */
 	ArrayList<float[]> vDiagram;
 
 	/**
@@ -123,7 +139,8 @@ public class DT {
 		// for each point in the point set
 		for (Vector2 vertex : points) {
 			// TODO: O(n^2) - optimize by sorting vertices along the x-axis and
-			// then only circumcircle check triangles that are on the right = O(n^1.5)
+			// then only circumcircle check triangles that are on the right =
+			// O(n^1.5)
 			triangleBuffer = addPoint(vertex, triangleBuffer);
 		}
 
@@ -132,18 +149,16 @@ public class DT {
 		// runtime
 		dTrianglesAll = (ArrayList<Triangle>) triangleBuffer.clone();
 
-		// JUST for displaying reasons:
-		// if triangle contains a vertex from supertriangle or it is outside the
-		// polygon, remove triangle
+		// for displaying and clipping reasons:
+		// if triangle contains a vertex from supertriangle, remove triangle
 		for (int i = triangleBuffer.size() - 1; i >= 0; i--) {
-			if (triangleBuffer.get(i).containsPoint(superT)
-					|| !pointInsidePolygon(points, triangleBuffer.get(i).getCenter())) {
+			if (triangleBuffer.get(i).containsPoint(superT)) {
 				triangleBuffer.remove(i);
 			}
 		}
 
 		// final delaunay triangle set
-		dTrianglesInner = triangleBuffer;
+		dTrianglesOutline = triangleBuffer;
 		return triangleBuffer;
 	}
 
@@ -251,7 +266,7 @@ public class DT {
 					trianglesAll.add(triangle);
 
 					// also fill the clipping list
-					if (dTrianglesInner.contains(triangle)) {
+					if (dTrianglesOutline.contains(triangle)) {
 						trianglesInner.add(triangle);
 					}
 				}

@@ -15,6 +15,7 @@ import com.shatter.dt.DT;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -177,18 +178,23 @@ public class TheWorld {
 		m.setAngVel(this.rand.nextFloat() * 2f);
 		asteroid.add(m);
 
-		float[] vertices = new float[8 * 2]; // creating vertices with different
+		float[] vertices = new float[20 * 2]; // creating vertices with different
 												// offset to midpoint
 		Vector2 ps = new Vector2(); // including size variable in offset
-		for (int i = 0; i < 8; i++) {
-			float offset = size * this.rand.nextFloat();
+		for (int i = 0; i < 20; i++) {
+			float offset = size * this.rand.nextFloat()/size;
 
 			ps.set(offset + size, 0f);
-			ps.rotate(360 / 8 * i);
+			ps.rotate(360 / 20 * i);
 
 			vertices[(i * 2)] = ps.x;
 			vertices[(i * 2 + 1)] = ps.y;
 		}
+		
+		// sort the points to make sure the polygon will be convex
+		// TODO: find better convex polygon generating algorithm
+		ConvexHull hull = new ConvexHull();
+		vertices = hull.computePolygon(vertices, false).toArray();
 
 		Visual v = new Visual();
 		v.setVERTICES(vertices);
