@@ -1,11 +1,12 @@
 package com.shatter.component;
 
-import java.util.ArrayList;
 import com.badlogic.ashley.core.Component;
-import com.shatter.dt.Triangle;
+import com.shatter.dt.DT;
 
 public class Fracture implements Component{
-	//public float[] pointList = new float[12*2]; //7 vertices, 5 random points
-	public ArrayList<Triangle> dt;
-	public ArrayList<float[]> vd;
+	public DT triangulator;
+
+	public void setTriangulator(DT triangulator) {
+		this.triangulator = triangulator;
+	}
 }

@@ -52,13 +52,13 @@ public class RenderSystem extends IteratingSystem {
 		
 		if(fract != null){
 			this.shapeRenderer.setColor(Color.GREEN);
-			for(int i = 0; i<fract.dt.size(); i++){
-				this.shapeRenderer.polygon(fract.dt.get(i).toVertexArray());
+			for(int i = 0; i<fract.triangulator.getDTriangles().size(); i++){
+				this.shapeRenderer.polygon(fract.triangulator.getDTriangles().get(i).toVertexArray());
 				//this.shapeRenderer.circle(fract.dt.get(i).getCcCenter().x, fract.dt.get(i).getCcCenter().y, fract.dt.get(i).getCcRadius());
 			}
 			this.shapeRenderer.setColor(Color.WHITE);
-			for(int i = 0; i<fract.vd.size(); i++){
-				this.shapeRenderer.polygon(fract.vd.get(i));
+			for(int i = 0; i<fract.triangulator.getVDiagram().size(); i++){
+				this.shapeRenderer.polygon(fract.triangulator.getVDiagram().get(i));
 			}
 		}
 

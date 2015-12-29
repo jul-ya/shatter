@@ -1,7 +1,6 @@
 package com.shatter.dt;
 
 import java.util.ArrayList;
-
 import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
 
@@ -25,25 +24,43 @@ import com.badlogic.gdx.math.Vector2;
 public class DT {
 
 	/**
-	 * The points to be triangulated.
+	 * All points to be triangulated.
 	 */
-	Vector2[] points;
+	private ArrayList<Vector2> points;
+	
+	/**
+	 * The dynamically added points that form in the game.
+	 */
+	private ArrayList<Vector2> dynamicPoints = new ArrayList<Vector2>();
+	
+	/**
+	 * The supertriangle for the given point set.
+	 */
+	private Triangle superT;
 
 	/**
 	 * The list of all triangles including the supertriangle.
 	 */
-	ArrayList<Triangle> dTrianglesAll;
+	private ArrayList<Triangle> dTrianglesAll;
 
 	/**
 	 * The list of all triangles that share a point with the polygon outline,
 	 * excluding all the supertriangle triangles.
 	 */
-	ArrayList<Triangle> dTrianglesOutline;
+	private ArrayList<Triangle> dTriangles;
 
 	/**
 	 * The list of Voronoi diagram cells.
 	 */
-	ArrayList<float[]> vDiagram;
+	private ArrayList<float[]> vDiagram = new ArrayList<float[]>();
+
+	public ArrayList<Triangle> getDTriangles() {
+		return dTriangles;
+	}
+
+	public ArrayList<float[]> getVDiagram() {
+		return vDiagram;
+	}
 
 	/**
 	 * The constructor for the DT.
@@ -51,8 +68,10 @@ public class DT {
 	 * @param points
 	 *            The set of points given.
 	 */
-	public DT(Vector2[] points) {
+	public DT(ArrayList<Vector2> points) {
 		this.points = points;
+		getDT();
+		getVD();
 	}
 
 	/**
@@ -63,26 +82,26 @@ public class DT {
 	 *            The given points.
 	 * @return float[] the extremes in order: xMin, yMin, xMax, yMax
 	 */
-	public float[] getMinMax(Vector2[] points) {
+	private float[] getMinMax(ArrayList<Vector2> points) {
 
 		// calculate xmin, xmax, ymin, ymax = the outer points of the given set
-		float xMin = points[0].x;
-		float yMin = points[0].y;
-		float xMax = points[0].x;
-		float yMax = points[0].y;
+		float xMin = points.get(0).x;
+		float yMin = points.get(0).y;
+		float xMax = points.get(0).x;
+		float yMax = points.get(0).y;
 
-		for (int i = 0; i < points.length; i++) {
-			if (points[i].x < xMin) {
-				xMin = points[i].x;
+		for (int i = 0; i < points.size(); i++) {
+			if (points.get(i).x < xMin) {
+				xMin = points.get(i).x;
 			}
-			if (points[i].x > xMax) {
-				xMax = points[i].x;
+			if (points.get(i).x > xMax) {
+				xMax = points.get(i).x;
 			}
-			if (points[i].y < yMin) {
-				yMin = points[i].y;
+			if (points.get(i).y < yMin) {
+				yMin = points.get(i).y;
 			}
-			if (points[i].y > yMax) {
-				yMax = points[i].y;
+			if (points.get(i).y > yMax) {
+				yMax = points.get(i).y;
 			}
 		}
 
@@ -97,7 +116,7 @@ public class DT {
 	 *            The given points.
 	 * @return Triangle the SuperTriangle that contains all the points
 	 */
-	public Triangle getSuperTriangle(Vector2[] points) {
+	private Triangle getSuperTriangle(ArrayList<Vector2> points) {
 
 		float[] extremes = getMinMax(points);
 		float xMin = extremes[0];
@@ -127,13 +146,13 @@ public class DT {
 	 * 
 	 * @return ArrayList<Triangles> the triangulated Triangle list
 	 */
-	public ArrayList<Triangle> getDT() {
+	private void getDT() {
 
 		// triangle buffer, containing current valid triangles
 		ArrayList<Triangle> triangleBuffer = new ArrayList<Triangle>();
 
 		// add the superTriangle to the buffer
-		Triangle superT = getSuperTriangle(points);
+		superT = getSuperTriangle(points);
 		triangleBuffer.add(superT);
 
 		// for each point in the point set
@@ -158,8 +177,7 @@ public class DT {
 		}
 
 		// final delaunay triangle set
-		dTrianglesOutline = triangleBuffer;
-		return triangleBuffer;
+		dTriangles = triangleBuffer;
 	}
 
 	/**
@@ -171,7 +189,7 @@ public class DT {
 	 *            The Triangle list that will be updated.
 	 * @return ArrayList<Triangle> the new valid triangles
 	 */
-	public ArrayList<Triangle> addPoint(Vector2 point, ArrayList<Triangle> triangles) {
+	private ArrayList<Triangle> addPoint(Vector2 point, ArrayList<Triangle> triangles) {
 
 		// edge buffer, contains the edges that will be re-added to new
 		// triangles
@@ -212,7 +230,7 @@ public class DT {
 	 *            The ArrayList to check.
 	 * @return ArrayList<Edge> the remaining unique edges
 	 */
-	public ArrayList<Edge> removeDuplicateEdges(ArrayList<Edge> edges) {
+	private ArrayList<Edge> removeDuplicateEdges(ArrayList<Edge> edges) {
 
 		// TODO: optimize from O(n^2) to O(n) with hash map?
 		ArrayList<Edge> newEdges = new ArrayList<Edge>();
@@ -247,8 +265,12 @@ public class DT {
 	 * 
 	 * @return ArrayList<Float[]> the voronoi cells
 	 */
-	public ArrayList<float[]> getVD() {
-		ArrayList<float[]> cells = new ArrayList<float[]>();
+	private void getVD() {
+
+		// clear so that diagram will be constructed all new
+		vDiagram.clear();
+
+		// initialize convex hull calculator
 		ConvexHull hull = new ConvexHull();
 
 		for (Vector2 vertex : points) {
@@ -266,17 +288,22 @@ public class DT {
 					trianglesAll.add(triangle);
 
 					// also fill the clipping list
-					if (dTrianglesOutline.contains(triangle)) {
+					if (dTriangles.contains(triangle)) {
 						trianglesInner.add(triangle);
 					}
 				}
 			}
 
 			// initialize the cell vertex array (leave space for the original
-			// vertex too - TODO: JUST if it's an outline point!)
-			float[] vertices = new float[trianglesAll.size() * 2 + 2];
-			vertices[vertices.length - 2] = vertex.x;
-			vertices[vertices.length - 1] = vertex.y;
+			// vertex too - just if it's an outline point)
+			float vertices[];
+			if (!dynamicPoints.contains(vertex)) {
+				vertices = new float[trianglesAll.size() * 2 + 2];
+				vertices[vertices.length - 2] = vertex.x;
+				vertices[vertices.length - 1] = vertex.y;
+			} else {
+				vertices = new float[trianglesAll.size() * 2];
+			}
 
 			for (int i = 0; i < trianglesAll.size(); i++) {
 				Triangle t = trianglesAll.get(i);
@@ -284,22 +311,25 @@ public class DT {
 				vertices[i * 2] = vPoint.x;
 				vertices[i * 2 + 1] = vPoint.y;
 
-				// clipping the vertices outside the polygon
-				if (!pointInsidePolygon(points, vPoint)) {
-					float distance = 0;
+				// clipping the vertices outside the polygon - just for the
+				// original outline points
+				if (!dynamicPoints.contains(vertex)) {
+					if (!pointInsidePolygon(points, vPoint)) {
+						float distance = 0;
 
-					// find nearest midpoint in triangle in set
-					for (int j = 0; j < trianglesInner.size(); j++) {
+						// find nearest midpoint in triangle in set
+						for (int j = 0; j < trianglesInner.size(); j++) {
 
-						Vector2[] midpoints = trianglesInner.get(j).getMidpoints();
-						for (int k = 0; k < midpoints.length; k++) {
-							if (distance > midpoints[k].dst(vPoint) || distance == 0) {
-								distance = midpoints[k].dst(vPoint);
+							Vector2[] midpoints = trianglesInner.get(j).getMidpoints();
+							for (int k = 0; k < midpoints.length; k++) {
+								if (distance > midpoints[k].dst(vPoint) || distance == 0) {
+									distance = midpoints[k].dst(vPoint);
 
-								// clip points to the nearest midpoint =
-								// intersection point
-								vertices[i * 2] = midpoints[k].x;
-								vertices[i * 2 + 1] = midpoints[k].y;
+									// clip points to the nearest midpoint =
+									// intersection point
+									vertices[i * 2] = midpoints[k].x;
+									vertices[i * 2 + 1] = midpoints[k].y;
+								}
 							}
 						}
 					}
@@ -307,11 +337,30 @@ public class DT {
 			}
 			vertices = hull.computePolygon(vertices, false).toArray();
 
-			cells.add(vertices);
+			vDiagram.add(vertices);
+		}
+	}
+
+	public void dynamicUpdate(Vector2 newP) {
+
+		// add point to original point list
+		points.add(newP);
+		// save point in this list too to differentiate from other points
+		dynamicPoints.add(newP);
+
+		// add point incrementally to the triangulation set and update the
+		// triangle lists accordingly
+		dTrianglesAll = addPoint(newP, dTrianglesAll);
+		dTriangles = (ArrayList<Triangle>) dTrianglesAll.clone();
+		for (int i = dTriangles.size() - 1; i >= 0; i--) {
+			if (dTriangles.get(i).containsPoint(superT)) {
+				dTriangles.remove(i);
+			}
 		}
 
-		vDiagram = cells;
-		return cells;
+		// recalculate the voronoi diagram
+		getVD();
+
 	}
 
 	/**
@@ -325,7 +374,7 @@ public class DT {
 	 *            The point to be tested.
 	 * @return boolean the check variable
 	 */
-	public boolean pointInsidePolygon(Vector2[] points, Vector2 testPoint) {
+	public boolean pointInsidePolygon(ArrayList<Vector2> points, Vector2 testPoint) {
 
 		float[] extremes = getMinMax(points);
 		float xMin = extremes[0];
@@ -340,10 +389,10 @@ public class DT {
 
 		// jordan scanline test
 		boolean inside = false;
-		for (int i = 0, j = points.length - 1; i < points.length; j = i++) {
-			if ((points[i].y >= testPoint.y) != (points[j].y >= testPoint.y)
-					&& testPoint.x <= (points[j].x - points[i].x) * (testPoint.y - points[i].y)
-							/ (points[j].y - points[i].y) + points[i].x) {
+		for (int i = 0, j = points.size() - 1; i < points.size(); j = i++) {
+			if ((points.get(i).y >= testPoint.y) != (points.get(j).y >= testPoint.y)
+					&& testPoint.x <= (points.get(j).x - points.get(i).x) * (testPoint.y - points.get(i).y)
+							/ (points.get(j).y - points.get(i).y) + points.get(i).x) {
 				inside = !inside;
 			}
 		}

@@ -1,5 +1,6 @@
 package com.shatter;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import com.shatter.component.Bullet;
@@ -203,19 +204,16 @@ public class TheWorld {
 
 		// add fracture component
 		Fracture f = new Fracture();
-		asteroid.add(f);
-
-		Vector2[] points = new Vector2[vertices.length / 2];
+		ArrayList<Vector2> points = new ArrayList<Vector2>();
 		for (int i = 0; i < vertices.length / 2; i++) {
-			points[i] = new Vector2(vertices[(i * 2)], vertices[(i * 2 + 1)]);
-			System.out.println(points[i]);
+			points.add(new Vector2(vertices[(i * 2)], vertices[(i * 2 + 1)]));
 		}
 		DT d = new DT(points);
-		f.dt = d.getDT();
-		f.vd = d.getVD();
-
-		System.out.println(f.dt.size());
-		System.out.println(f.vd.size());
+		f.setTriangulator(d);
+		
+		System.out.println(d.getDTriangles().size());
+		System.out.println(d.getVDiagram().size());
+		asteroid.add(f);
 
 		Collider c = new Collider();
 		c.setRadius(1.5f * size);
@@ -233,7 +231,7 @@ public class TheWorld {
 	}
 
 	/**
-	 * This method creates the Entity called Asteroid.
+	 * This method creates the Entity called AsteroidVD.
 	 * 
 	 * @return Entity The asteroid entity.
 	 */
@@ -257,22 +255,6 @@ public class TheWorld {
 		v.setVERTICES(vertices);
 		v.setCOLOR(Color.WHITE);
 		asteroid.add(v);
-
-		/*add fracture component
-		Fracture f = new Fracture();
-		asteroid.add(f);
-
-		Vector2[] points = new Vector2[vertices.length / 2];
-		for (int i = 0; i < vertices.length / 2; i++) {
-			points[i] = new Vector2(vertices[(i * 2)], vertices[(i * 2 + 1)]);
-			System.out.println(points[i]);
-		}
-		DT d = new DT(points);
-		f.dt = d.getDT();
-		f.vd = d.getVD();
-
-		System.out.println(f.dt.size());
-		System.out.println(f.vd.size());*/
 
 		Collider c = new Collider();
 		c.setRadius(1f);
