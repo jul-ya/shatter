@@ -7,9 +7,9 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * This class constructs a delaunay triangulation of a given mesh, which is the
  * dual graph of a voronoi diagram. The algorithm used is called
- * BowyerWatson-Algorithm and has a complexity from O(n log n) to O(n^2) in
- * special cases. As it is an incremental approach, new points can simply be
- * generated and added to the triangulation.
+ * BowyerWatson-Algorithm and has a runtime complexity of O(n^2). As it is an
+ * incremental approach, new points can simply be generated and added to the
+ * triangulation. A voronoi diagram can be generated out of this triangulation.
  * 
  * references used constructing the main algorithm implementation:
  * https://takisword.wordpress.com/2009/08/13/bowyerwatson-algorithm/
@@ -27,12 +27,12 @@ public class DT {
 	 * All points to be triangulated.
 	 */
 	private ArrayList<Vector2> points;
-	
+
 	/**
 	 * The dynamically added points that form in the game.
 	 */
 	private ArrayList<Vector2> dynamicPoints = new ArrayList<Vector2>();
-	
+
 	/**
 	 * The supertriangle for the given point set.
 	 */
@@ -143,8 +143,6 @@ public class DT {
 	/**
 	 * The real DT calculation using Bowyer-Watson incremental algorithm happens
 	 * here.
-	 * 
-	 * @return ArrayList<Triangles> the triangulated Triangle list
 	 */
 	private void getDT() {
 
@@ -262,8 +260,6 @@ public class DT {
 	/**
 	 * This method calculates the voronoi diagram out of the given delaunay
 	 * triangulation with the aid of libgdx's convex hull calculation.
-	 * 
-	 * @return ArrayList<Float[]> the voronoi cells
 	 */
 	private void getVD() {
 
@@ -341,7 +337,14 @@ public class DT {
 		}
 	}
 
-	public void dynamicUpdate(Vector2 newP) {
+	/**
+	 * This method dynamically adds a new point to the existing triangulation
+	 * and recalculates the voronoi diagram.
+	 * 
+	 * @param newP
+	 *            the point to be added
+	 */
+	public void dynamicUpdatePoint(Vector2 newP) {
 
 		// add point to original point list
 		points.add(newP);
@@ -349,7 +352,7 @@ public class DT {
 		dynamicPoints.add(newP);
 
 		// add point incrementally to the triangulation set and update the
-		// triangle lists accordingly
+		// triangle list accordingly
 		dTrianglesAll = addPoint(newP, dTrianglesAll);
 		dTriangles = (ArrayList<Triangle>) dTrianglesAll.clone();
 		for (int i = dTriangles.size() - 1; i >= 0; i--) {
@@ -360,7 +363,36 @@ public class DT {
 
 		// recalculate the voronoi diagram
 		getVD();
+	}
 
+	/**
+	 * This method dynamically adds new points to the existing triangulation and
+	 * recalculates the voronoi diagram.
+	 * 
+	 * @param newPoints
+	 *            the points to be added
+	 */
+	public void dynamicUpdatePoints(Vector2[] newPoints) {
+
+		for (int i = 0; i < newPoints.length; i++) {
+			// add point to original point list
+			points.add(newPoints[i]);
+			// save point in this list too to differentiate from other points
+			dynamicPoints.add(newPoints[i]);
+			// add point incrementally to the triangulation set
+			dTrianglesAll = addPoint(newPoints[i], dTrianglesAll);
+		}
+
+		// update the triangle list accordingly
+		dTriangles = (ArrayList<Triangle>) dTrianglesAll.clone();
+		for (int i = dTriangles.size() - 1; i >= 0; i--) {
+			if (dTriangles.get(i).containsPoint(superT)) {
+				dTriangles.remove(i);
+			}
+		}
+
+		// recalculate the voronoi diagram
+		getVD();
 	}
 
 	/**

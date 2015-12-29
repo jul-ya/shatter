@@ -7,6 +7,7 @@ import com.shatter.Shatter;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+		config.samples = 4;
 		new LwjglApplication(new Shatter(), config);
 	}
 }
