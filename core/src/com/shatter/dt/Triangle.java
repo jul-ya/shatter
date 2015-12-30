@@ -8,7 +8,7 @@ public class Triangle {
 	protected Vector2 b;
 	protected Vector2 c;
 
-	protected float ccRadius;
+	protected float ccRadiusSquared;
 	protected Vector2 ccCenter;
 
 	private static double EPSILON = 1.0e-6;
@@ -74,8 +74,7 @@ public class Triangle {
 			dy = ccCenter.y - this.a.y;
 		}
 
-		float radius_squared = dx * dx + dy * dy;
-		this.ccRadius = (float) Math.sqrt(radius_squared);
+		this.ccRadiusSquared = dx * dx + dy * dy;
 	}
 
 	/**
@@ -90,7 +89,7 @@ public class Triangle {
 		float dy = this.ccCenter.y - v.y;
 		float dist_squared = dx * dx + dy * dy;
 
-		return (dist_squared <= Math.pow(this.ccRadius, 2));
+		return (dist_squared <= this.ccRadiusSquared);
 	};
 
 	/**
@@ -185,12 +184,12 @@ public class Triangle {
 	}
 
 	/**
-	 * Getter of the cc radius.
+	 * Getter of the squared cc radius.
 	 * 
-	 * @return float ccRadius
+	 * @return float ccRadiusSquared
 	 */
-	public float getCcRadius() {
-		return ccRadius;
+	public float getCcRadiusSquared() {
+		return ccRadiusSquared;
 	}
 
 	/**
