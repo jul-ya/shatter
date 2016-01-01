@@ -147,35 +147,32 @@ public class DT {
 	private void getDT() {
 
 		// triangle buffer, containing current valid triangles
-		ArrayList<Triangle> triangleBuffer = new ArrayList<Triangle>();
+		dTriangles = new ArrayList<Triangle>();
 
 		// add the superTriangle to the buffer
 		superT = getSuperTriangle(points);
-		triangleBuffer.add(superT);
+		dTriangles.add(superT);
 
 		// for each point in the point set
 		for (Vector2 vertex : points) {
 			// TODO: O(n^2) - optimize by sorting vertices along the x-axis and
 			// then only circumcircle check triangles that are on the right =
 			// O(n^1.5)
-			triangleBuffer = addPoint(vertex, triangleBuffer);
+			dTriangles = addPoint(vertex, dTriangles);
 		}
 
 		// save DT including superTriangle for computing the VD
 		// this provokes an unchecked cast because type is not available at
 		// runtime
-		dTrianglesAll = (ArrayList<Triangle>) triangleBuffer.clone();
+		dTrianglesAll = (ArrayList<Triangle>) dTriangles.clone();
 
 		// for displaying and clipping reasons:
-		// if triangle contains a vertex from supertriangle, remove triangle
-		for (int i = triangleBuffer.size() - 1; i >= 0; i--) {
-			if (triangleBuffer.get(i).containsPoint(superT)) {
-				triangleBuffer.remove(i);
+		// if triangle contains a vertex from superTriangle, remove triangle
+		for (int i = dTriangles.size() - 1; i >= 0; i--) {
+			if (dTriangles.get(i).containsPoint(superT)) {
+				dTriangles.remove(i);
 			}
 		}
-
-		// final delaunay triangle set
-		dTriangles = triangleBuffer;
 	}
 
 	/**

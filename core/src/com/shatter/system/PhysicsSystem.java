@@ -70,6 +70,7 @@ public class PhysicsSystem extends IteratingSystem {
 			// dynamic update test and time measuring
 			long startTime = System.nanoTime();
 			fract.triangulator.dynamicUpdatePoints(new Vector2[]{new Vector2(0, 0), new Vector2(0.5f, 0.5f)});
+			//fract.triangulator.dynamicUpdatePoint(new Vector2(0, 0));
 			long stopTime = System.nanoTime();
 			System.out.println((stopTime - startTime) / 100000.0);
 
