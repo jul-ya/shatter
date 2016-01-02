@@ -179,27 +179,26 @@ public class TheWorld {
 		m.setAngVel(this.rand.nextFloat() * 2f);
 		asteroid.add(m);
 
-		float[] vertices = new float[20 * 2]; // creating vertices with different
+		float[] vertices = new float[10 * 2]; // creating vertices with different
 												// offset to midpoint
 		Vector2 ps = new Vector2(); // including size variable in offset
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 10; i++) {
 			float offset = size * this.rand.nextFloat()/size;
 
 			ps.set(offset + size, 0f);
-			ps.rotate(360 / 20 * i);
+			ps.rotate(360 / 10 * i);
 
 			vertices[(i * 2)] = ps.x;
 			vertices[(i * 2 + 1)] = ps.y;
 		}
 		
 		// sort the points to make sure the polygon will be convex
-		// TODO: find better convex polygon generating algorithm
 		ConvexHull hull = new ConvexHull();
 		vertices = hull.computePolygon(vertices, false).toArray();
 
 		Visual v = new Visual();
 		v.setVERTICES(vertices);
-		v.setCOLOR(Color.WHITE);
+		v.setCOLOR(Color.BLACK);
 		asteroid.add(v);
 
 		// add fracture component
@@ -253,7 +252,7 @@ public class TheWorld {
 
 		Visual v = new Visual();
 		v.setVERTICES(vertices);
-		v.setCOLOR(Color.WHITE);
+		v.setCOLOR(Color.BLACK);
 		asteroid.add(v);
 
 		Collider c = new Collider();

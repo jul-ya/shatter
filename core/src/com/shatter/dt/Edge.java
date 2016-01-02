@@ -27,17 +27,25 @@ public class Edge {
 	 *            Edge the edge to compare
 	 * @return boolean The result of the comparison.
 	 */
-	public boolean isDuplicate(Edge e) {
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof Edge)) {
+			return false;
+		}
+		Edge e = (Edge) obj;
 		return a.equals(e.a) && b.equals(e.b) || a.equals(e.b) && b.equals(e.a);
 	}
 
 	/**
-	 * Gets the inverse of this edge where a=b and b=a.
+	 * This method overrides the hashcode method.
 	 * 
-	 * @return Edge The inverse edge.
+	 * @return int The new hashcode.
 	 */
-	public Edge inverse() {
-		return new Edge(this.b, this.a);
+	@Override
+	public int hashCode() {
+		int hashMult = 31;
+		int hashSum = a.hashCode() + b.hashCode();
+		return hashMult * hashSum;
 	}
 
 	/**

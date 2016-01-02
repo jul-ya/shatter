@@ -56,7 +56,7 @@ public class RenderSystem extends IteratingSystem {
 				this.shapeRenderer.polygon(fract.triangulator.getDTriangles().get(i).toVertexArray());
 				//this.shapeRenderer.circle(fract.dt.get(i).getCcCenter().x, fract.dt.get(i).getCcCenter().y, fract.dt.get(i).getCcRadius());
 			}
-			this.shapeRenderer.setColor(Color.WHITE);
+			this.shapeRenderer.setColor(Color.BLACK);
 			for(int i = 0; i<fract.triangulator.getVDiagram().size(); i++){
 				this.shapeRenderer.polygon(fract.triangulator.getVDiagram().get(i));
 			}

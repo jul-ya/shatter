@@ -239,7 +239,7 @@ public class DT {
 					continue;
 				}
 				Edge edge2 = edges.get(j);
-				if (edge1.isDuplicate(edge2) || edge1.inverse().isDuplicate(edge2)) {
+				if (edge1.equals(edge2)) {
 					isUnique = false;
 					break;
 				}
@@ -280,9 +280,11 @@ public class DT {
 				if (triangle.containsPoint(vertex)) {
 					trianglesAll.add(triangle);
 
-					// also fill the clipping list
-					if (dTriangles.contains(triangle)) {
-						trianglesInner.add(triangle);
+					if (!dynamicPoints.contains(vertex)) {
+						// also fill the clipping list
+						if (dTriangles.contains(triangle)) {
+							trianglesInner.add(triangle);
+						}
 					}
 				}
 			}
@@ -306,8 +308,7 @@ public class DT {
 
 				// clipping the vertices outside the polygon - just for the
 				// original outline points
-				if (!dynamicPoints.contains(vertex)) {
-					if (!pointInsidePolygon(points, vPoint)) {
+				if (!dynamicPoints.contains(vertex) && !pointInsidePolygon(points, vPoint)) {
 						float distance = 0;
 
 						// find nearest midpoint in triangle in set
@@ -325,7 +326,6 @@ public class DT {
 								}
 							}
 						}
-					}
 				}
 			}
 			vertices = hull.computePolygon(vertices, false).toArray();
@@ -335,36 +335,40 @@ public class DT {
 	}
 
 	/**
-	 * This method dynamically adds a new point to the existing triangulation
-	 * and recalculates the voronoi diagram.
+	 * This method dynamically adds a new point (if the point is inside the
+	 * polygon) to the existing triangulation and recalculates the voronoi
+	 * diagram.
 	 * 
 	 * @param newP
 	 *            the point to be added
 	 */
 	public void dynamicUpdatePoint(Vector2 newP) {
 
-		// add point to original point list
-		points.add(newP);
-		// save point in this list too to differentiate from other points
-		dynamicPoints.add(newP);
+		if (pointInsidePolygon(points, newP)) {
+			// add point to original point list
+			points.add(newP);
+			// save point in this list too to differentiate from other points
+			dynamicPoints.add(newP);
 
-		// add point incrementally to the triangulation set and update the
-		// triangle list accordingly
-		dTrianglesAll = addPoint(newP, dTrianglesAll);
-		dTriangles = (ArrayList<Triangle>) dTrianglesAll.clone();
-		for (int i = dTriangles.size() - 1; i >= 0; i--) {
-			if (dTriangles.get(i).containsPoint(superT)) {
-				dTriangles.remove(i);
+			// add point incrementally to the triangulation set and update the
+			// triangle list accordingly
+			dTrianglesAll = addPoint(newP, dTrianglesAll);
+			dTriangles = (ArrayList<Triangle>) dTrianglesAll.clone();
+			for (int i = dTriangles.size() - 1; i >= 0; i--) {
+				if (dTriangles.get(i).containsPoint(superT)) {
+					dTriangles.remove(i);
+				}
 			}
-		}
 
-		// recalculate the voronoi diagram
-		getVD();
+			// recalculate the voronoi diagram
+			getVD();
+		}
 	}
 
 	/**
-	 * This method dynamically adds new points to the existing triangulation and
-	 * recalculates the voronoi diagram.
+	 * This method dynamically adds new points (if the points are inside the
+	 * polygon) to the existing triangulation and recalculates the voronoi
+	 * diagram.
 	 * 
 	 * @param newPoints
 	 *            the points to be added
@@ -372,12 +376,15 @@ public class DT {
 	public void dynamicUpdatePoints(Vector2[] newPoints) {
 
 		for (int i = 0; i < newPoints.length; i++) {
-			// add point to original point list
-			points.add(newPoints[i]);
-			// save point in this list too to differentiate from other points
-			dynamicPoints.add(newPoints[i]);
-			// add point incrementally to the triangulation set
-			dTrianglesAll = addPoint(newPoints[i], dTrianglesAll);
+			if (pointInsidePolygon(points, newPoints[i])) {
+				// add point to original point list
+				points.add(newPoints[i]);
+				// save point in this list too to differentiate from other
+				// points
+				dynamicPoints.add(newPoints[i]);
+				// add point incrementally to the triangulation set
+				dTrianglesAll = addPoint(newPoints[i], dTrianglesAll);
+			}
 		}
 
 		// update the triangle list accordingly
