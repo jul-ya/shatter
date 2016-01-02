@@ -1,6 +1,9 @@
 package com.shatter.dt;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
 
@@ -24,9 +27,11 @@ import com.badlogic.gdx.math.Vector2;
 public class DT {
 
 	/**
-	 * All points to be triangulated.
+	 * All points to be triangulated, unsorted (in ccw order) and sorted by x
+	 * values.
 	 */
 	private ArrayList<Vector2> points;
+	private ArrayList<Vector2> sortedPoints;
 
 	/**
 	 * The dynamically added points that form in the game.
@@ -70,6 +75,21 @@ public class DT {
 	 */
 	public DT(ArrayList<Vector2> points) {
 		this.points = points;
+		this.sortedPoints = (ArrayList<Vector2>) points.clone();
+		Collections.sort(sortedPoints, new Comparator<Vector2>() {
+
+			@Override
+			public int compare(Vector2 arg0, Vector2 arg1) {
+				if (arg0.x < arg1.x) {
+					return -1;
+				} else if (arg0.x == arg1.x) {
+					return 0;
+				} else {
+					return 1;
+				}
+			}
+
+		});
 		getDT();
 		getVD();
 	}
@@ -150,11 +170,11 @@ public class DT {
 		dTriangles = new ArrayList<Triangle>();
 
 		// add the superTriangle to the buffer
-		superT = getSuperTriangle(points);
+		superT = getSuperTriangle(sortedPoints);
 		dTriangles.add(superT);
 
 		// for each point in the point set
-		for (Vector2 vertex : points) {
+		for (Vector2 vertex : sortedPoints) {
 			// TODO: O(n^2) - optimize by sorting vertices along the x-axis and
 			// then only circumcircle check triangles that are on the right =
 			// O(n^1.5)
@@ -196,13 +216,19 @@ public class DT {
 
 			Triangle T = triangles.get(j);
 
-			// if point is inside a triangles circumcircle, add edges to buffer
+			// if point is inside a triangles circumcircle, add edges to
+			// buffer
 			// and remove triangle
-			if (T.inCC(point)) {
-				edgeBuffer.add(new Edge(T.getA(), T.getB()));
-				edgeBuffer.add(new Edge(T.getB(), T.getC()));
-				edgeBuffer.add(new Edge(T.getC(), T.getA()));
-				triangles.remove(j);
+
+			if (!T.isComplete()) {
+				if (T.inCC(point)) {
+					edgeBuffer.add(new Edge(T.getA(), T.getB()));
+					edgeBuffer.add(new Edge(T.getB(), T.getC()));
+					edgeBuffer.add(new Edge(T.getC(), T.getA()));
+					triangles.remove(j);
+				} /*else {
+					T.completed();
+				}*/ //TODO!
 			}
 
 		}
@@ -309,23 +335,23 @@ public class DT {
 				// clipping the vertices outside the polygon - just for the
 				// original outline points
 				if (!dynamicPoints.contains(vertex) && !pointInsidePolygon(points, vPoint)) {
-						float distance = 0;
+					float distance = 0;
 
-						// find nearest midpoint in triangle in set
-						for (int j = 0; j < trianglesInner.size(); j++) {
+					// find nearest midpoint in triangle in set
+					for (int j = 0; j < trianglesInner.size(); j++) {
 
-							Vector2[] midpoints = trianglesInner.get(j).getMidpoints();
-							for (int k = 0; k < midpoints.length; k++) {
-								if (distance > midpoints[k].dst(vPoint) || distance == 0) {
-									distance = midpoints[k].dst(vPoint);
+						Vector2[] midpoints = trianglesInner.get(j).getMidpoints();
+						for (int k = 0; k < midpoints.length; k++) {
+							if (distance > midpoints[k].dst(vPoint) || distance == 0) {
+								distance = midpoints[k].dst(vPoint);
 
-									// clip points to the nearest midpoint =
-									// intersection point
-									vertices[i * 2] = midpoints[k].x;
-									vertices[i * 2 + 1] = midpoints[k].y;
-								}
+								// clip points to the nearest midpoint =
+								// intersection point
+								vertices[i * 2] = midpoints[k].x;
+								vertices[i * 2 + 1] = midpoints[k].y;
 							}
 						}
+					}
 				}
 			}
 			vertices = hull.computePolygon(vertices, false).toArray();

@@ -193,8 +193,8 @@ public class TheWorld {
 		}
 		
 		// sort the points to make sure the polygon will be convex
-		ConvexHull hull = new ConvexHull();
-		vertices = hull.computePolygon(vertices, false).toArray();
+		// ConvexHull hull = new ConvexHull();
+		// vertices = hull.computePolygon(vertices, false).toArray();
 
 		Visual v = new Visual();
 		v.setVERTICES(vertices);

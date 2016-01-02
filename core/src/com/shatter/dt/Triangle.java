@@ -10,6 +10,8 @@ public class Triangle {
 
 	protected float ccRadiusSquared;
 	protected Vector2 ccCenter;
+	
+	protected boolean complete;
 
 	private static double EPSILON = 1.0e-6;
 
@@ -27,6 +29,7 @@ public class Triangle {
 		this.a = a;
 		this.b = b;
 		this.c = c;
+		this.complete = false;
 		this.calcCircumCircle();
 	}
 
@@ -218,6 +221,14 @@ public class Triangle {
 	public Vector2[] getMidpoints() {
 		return new Vector2[] { new Vector2((a.x + b.x) / 2, (a.y + b.y) / 2),
 				new Vector2((b.x + c.x) / 2, (b.y + c.y) / 2), new Vector2((c.x + a.x) / 2, (c.y + a.y) / 2) };
+	}
+	
+	public void completed(){
+		this.complete = true;
+	}
+
+	public boolean isComplete() {
+		return complete;
 	}
 
 }
