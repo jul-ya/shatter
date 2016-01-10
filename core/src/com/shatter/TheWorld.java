@@ -191,10 +191,6 @@ public class TheWorld {
 			vertices[(i * 2)] = ps.x;
 			vertices[(i * 2 + 1)] = ps.y;
 		}
-		
-		// sort the points to make sure the polygon will be convex
-		// ConvexHull hull = new ConvexHull();
-		// vertices = hull.computePolygon(vertices, false).toArray();
 
 		Visual v = new Visual();
 		v.setVERTICES(vertices);

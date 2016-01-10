@@ -41,12 +41,34 @@ public class PhysicsSystem extends IteratingSystem {
 				if (msg == null) {
 					return false;
 				}
-				Entity e = (Entity) msg.extraInfo;
-				if (e.getComponent(Bullet.class) != null || e.getComponent(Ship.class) != null) {
-					removeE(e);
-				} else { // when entity is asteroid
-					createP(e);
-					removeE(e);
+				Entity[] entities = (Entity[]) msg.extraInfo;
+				Entity ship = null;
+				Entity bullet = null;
+				Entity asteroid = null;
+				Vector2 sector = null;
+				
+				for(Entity e : entities){
+					if(e.getComponent(Bullet.class) != null)
+						bullet = e;
+					else if(e.getComponent(Ship.class) != null)
+						ship = e;
+					else
+						asteroid = e;
+				}
+				
+				if(ship != null){
+					removeE(ship);
+				}
+				if(bullet != null){
+					Vector2 tmp = bullet.getComponent(Movement.class).vel.nor();
+					sector = new Vector2(-tmp.x, -tmp.y); // save inverted velocity as the sector to fracture
+					removeE(bullet);
+				}
+				if(asteroid != null){
+					if(sector != null){
+						createP(asteroid, sector);
+					}
+					removeE(asteroid);
 				}
 				return true;
 			}
@@ -58,15 +80,17 @@ public class PhysicsSystem extends IteratingSystem {
 		engine.removeEntity(e);
 	}
 
-	public void createP(Entity e) {
+	public void createP(Entity e, Vector2 sector) {
 		for (int i = 0; i < 100; i++) {
 			world.createParticle(e.getComponent(Position.class).pos.x, e.getComponent(Position.class).pos.y,
 					(float) (Math.random() * 360), (float) (Math.random() * 20));
 		}
-		if (e.getComponent(Collider.class).radius >= 2f) {
+		if (e.getComponent(Fracture.class) != null) {
 
 			Fracture fract = e.getComponent(Fracture.class);
-
+			
+			//TODO: sector fracturing!
+			
 			// dynamic update test and time measuring
 			long startTime = System.nanoTime();
 			fract.triangulator.dynamicUpdatePoints(new Vector2[]{new Vector2(0, 0), new Vector2(0.5f, 0.5f)});

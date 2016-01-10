@@ -3,6 +3,9 @@ package com.shatter.dt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Random;
 
 import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
@@ -27,10 +30,13 @@ import com.badlogic.gdx.math.Vector2;
 public class DT {
 
 	/**
-	 * All points to be triangulated, unsorted (in ccw order) and sorted by x
-	 * values.
+	 * All points to be triangulated, unsorted but in ccw order.
 	 */
 	private ArrayList<Vector2> points;
+
+	/**
+	 * All points to be triangulated, sorted by x values.
+	 */
 	private ArrayList<Vector2> sortedPoints;
 
 	/**
@@ -73,8 +79,11 @@ public class DT {
 	 * @param points
 	 *            The set of points given.
 	 */
+	@SuppressWarnings("unchecked")
 	public DT(ArrayList<Vector2> points) {
 		this.points = points;
+
+		// pre-sort the points on x-axis
 		this.sortedPoints = (ArrayList<Vector2>) points.clone();
 		Collections.sort(sortedPoints, new Comparator<Vector2>() {
 
@@ -90,6 +99,7 @@ public class DT {
 			}
 
 		});
+
 		getDT();
 		getVD();
 	}
@@ -164,6 +174,7 @@ public class DT {
 	 * The real DT calculation using Bowyer-Watson incremental algorithm happens
 	 * here.
 	 */
+	@SuppressWarnings("unchecked")
 	private void getDT() {
 
 		// triangle buffer, containing current valid triangles
@@ -175,15 +186,12 @@ public class DT {
 
 		// for each point in the point set
 		for (Vector2 vertex : sortedPoints) {
-			// TODO: O(n^2) - optimize by sorting vertices along the x-axis and
-			// then only circumcircle check triangles that are on the right =
-			// O(n^1.5)
+			// would be O(n^2) - optimized by sorting points along the x-axis
+			// and only cc check the triangles on the right = now O(n^1.5)
 			dTriangles = addPoint(vertex, dTriangles);
 		}
 
 		// save DT including superTriangle for computing the VD
-		// this provokes an unchecked cast because type is not available at
-		// runtime
 		dTrianglesAll = (ArrayList<Triangle>) dTriangles.clone();
 
 		// for displaying and clipping reasons:
@@ -217,18 +225,19 @@ public class DT {
 			Triangle T = triangles.get(j);
 
 			// if point is inside a triangles circumcircle, add edges to
-			// buffer
-			// and remove triangle
+			// buffer and remove triangle
 
-			if (!T.isComplete()) {
+			boolean inXReach = T.inXReach(point.x); // precalculate flag boolean
+
+			if (!T.isComplete() && inXReach) { // only do cc test if in reach
 				if (T.inCC(point)) {
 					edgeBuffer.add(new Edge(T.getA(), T.getB()));
 					edgeBuffer.add(new Edge(T.getB(), T.getC()));
 					edgeBuffer.add(new Edge(T.getC(), T.getA()));
 					triangles.remove(j);
-				} /*else {
-					T.completed();
-				}*/ //TODO!
+				}
+			} else if (!inXReach) {
+				T.flagCompleted(); // if out of reach, flag as complete
 			}
 
 		}
@@ -368,7 +377,12 @@ public class DT {
 	 * @param newP
 	 *            the point to be added
 	 */
+	@SuppressWarnings("unchecked")
 	public void dynamicUpdatePoint(Vector2 newP) {
+
+		for (Triangle T : dTrianglesAll) {
+			T.resetCompleted(); // reset the complete flags
+		}
 
 		if (pointInsidePolygon(points, newP)) {
 			// add point to original point list
@@ -399,7 +413,12 @@ public class DT {
 	 * @param newPoints
 	 *            the points to be added
 	 */
+	@SuppressWarnings("unchecked")
 	public void dynamicUpdatePoints(Vector2[] newPoints) {
+
+		for (Triangle T : dTrianglesAll) {
+			T.resetCompleted(); // reset the complete flags
+		}
 
 		for (int i = 0; i < newPoints.length; i++) {
 			if (pointInsidePolygon(points, newPoints[i])) {

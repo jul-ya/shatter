@@ -32,8 +32,7 @@ public class CollisionSystem extends EntitySystem {
 				if((e1.getComponent(Collider.class).flag & e2.getComponent(Collider.class).mask)!=0 && (e2.getComponent(Collider.class).flag & e1.getComponent(Collider.class).mask)!=0){
 					if (processEntity(e1, e2)) {
 						//actual collision with objects
-						MessageManager.getInstance().dispatchMessage(0, null, null, 1, e1);
-						MessageManager.getInstance().dispatchMessage(0, null, null, 1, e2);
+						MessageManager.getInstance().dispatchMessage(0, null, null, 1, new Entity[]{e1,e2});
 					}
 				}
 			}

@@ -10,13 +10,14 @@ public class Triangle {
 
 	protected float ccRadiusSquared;
 	protected Vector2 ccCenter;
-	
+
 	protected boolean complete;
 
 	private static double EPSILON = 1.0e-6;
 
 	/**
-	 * The constructor for the triangle, calculates the circumcircle already.
+	 * The constructor for the triangle, calculates the circumcircle already and
+	 * sets the complete flag as false.
 	 * 
 	 * @param a
 	 *            Vector2 of A
@@ -93,6 +94,19 @@ public class Triangle {
 		float dist_squared = dx * dx + dy * dy;
 
 		return (dist_squared <= this.ccRadiusSquared);
+	};
+	
+	/**
+	 * This method checks if a point is in the x reach of the Triangle.
+	 * 
+	 * @param x
+	 *            The point's x value.
+	 * @return boolean The result of the check.
+	 */
+	public boolean inXReach(float x) {
+		float dist = this.ccCenter.x - x;
+
+		return ((dist * dist) <= this.ccRadiusSquared);
 	};
 
 	/**
@@ -222,9 +236,13 @@ public class Triangle {
 		return new Vector2[] { new Vector2((a.x + b.x) / 2, (a.y + b.y) / 2),
 				new Vector2((b.x + c.x) / 2, (b.y + c.y) / 2), new Vector2((c.x + a.x) / 2, (c.y + a.y) / 2) };
 	}
-	
-	public void completed(){
+
+	public void flagCompleted() {
 		this.complete = true;
+	}
+
+	public void resetCompleted() {
+		this.complete = false;
 	}
 
 	public boolean isComplete() {

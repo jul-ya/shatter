@@ -43,7 +43,7 @@ public class Edge {
 	 */
 	@Override
 	public int hashCode() {
-		int hashMult = 31;
+		final int hashMult = 31;
 		int hashSum = a.hashCode() + b.hashCode();
 		return hashMult * hashSum;
 	}
