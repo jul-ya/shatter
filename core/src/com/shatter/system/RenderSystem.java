@@ -21,7 +21,7 @@ public class RenderSystem extends IteratingSystem {
 	private Camera camera;
 
 	public RenderSystem(OrthographicCamera camera) {
-		super(Family.all(Position.class,Visual.class).get());
+		super(Family.all(Position.class, Visual.class).get());
 		this.camera = camera;
 		this.shapeRenderer = new ShapeRenderer();
 	}
@@ -44,20 +44,24 @@ public class RenderSystem extends IteratingSystem {
 			pose.pos.y = camera.viewportHeight / 2;
 		}
 
-		this.shapeRenderer.setColor(shape.COLOR);
-		this.shapeRenderer.identity();
-		this.shapeRenderer.translate(pose.pos.x, pose.pos.y, 0.0F);
-		this.shapeRenderer.rotate(0.0F, 0.0F, 1.0F, pose.angle);
-		this.shapeRenderer.polygon(shape.VERTICES);
-		
-		if(fract != null){
+		// render entities
+		if (shape != null && pose != null) {
+			this.shapeRenderer.setColor(shape.COLOR);
+			this.shapeRenderer.identity();
+			this.shapeRenderer.translate(pose.pos.x, pose.pos.y, 0.0F);
+			this.shapeRenderer.rotate(0.0F, 0.0F, 1.0F, pose.angle);
+			this.shapeRenderer.polygon(shape.VERTICES);
+		}
+
+		if (fract != null) {
+			// render DT
 			this.shapeRenderer.setColor(Color.GREEN);
-			for(int i = 0; i<fract.triangulator.getDTriangles().size(); i++){
+			for (int i = 0; i < fract.triangulator.getDTriangles().size(); i++) {
 				this.shapeRenderer.polygon(fract.triangulator.getDTriangles().get(i).toVertexArray());
-				//this.shapeRenderer.circle(fract.dt.get(i).getCcCenter().x, fract.dt.get(i).getCcCenter().y, fract.dt.get(i).getCcRadius());
 			}
+			// render VD
 			this.shapeRenderer.setColor(Color.BLACK);
-			for(int i = 0; i<fract.triangulator.getVDiagram().size(); i++){
+			for (int i = 0; i < fract.triangulator.getVDiagram().size(); i++) {
 				this.shapeRenderer.polygon(fract.triangulator.getVDiagram().get(i));
 			}
 		}

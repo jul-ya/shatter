@@ -1,6 +1,6 @@
 package com.shatter.system;
 
-import com.shatter.TheWorld;
+import com.shatter.World;
 import com.shatter.component.Gun;
 import com.shatter.component.Position;
 import com.badlogic.ashley.core.ComponentMapper;
@@ -14,10 +14,10 @@ import com.badlogic.gdx.math.Vector2;
 public class GunSystem extends IteratingSystem {
 	private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
 	private ComponentMapper<Gun> gm = ComponentMapper.getFor(Gun.class);
-	private TheWorld world;
+	private World world;
 	private Vector2 bulletVector = new Vector2();
 
-	public GunSystem(TheWorld world) {
+	public GunSystem(World world) {
 		super(Family.all(Gun.class, Position.class).get());
 		this.world = world;
 	}

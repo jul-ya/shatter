@@ -2,10 +2,24 @@ package com.shatter.dt;
 
 import com.badlogic.gdx.math.Vector2;
 
+/**
+ * This class represents an edge in the triangulation. It has different
+ * methods which are used in the triangulation algorithm.
+ * 
+ * @author Julia Angerer
+ * @version 1.0
+ */
 public class Edge {
 
-	protected Vector2 a;
-	protected Vector2 b;
+	/**
+	 * The edge point a.
+	 */
+	private Vector2 a;
+	
+	/**
+	 * The edge point b.
+	 */
+	private Vector2 b;
 
 	/**
 	 * The constructor for the edge.
@@ -58,32 +72,12 @@ public class Edge {
 	}
 
 	/**
-	 * Setter of point A.
-	 * 
-	 * @param a
-	 *            Vector2 of A
-	 */
-	public void setA(Vector2 a) {
-		this.a = a;
-	}
-
-	/**
 	 * Getter of point B.
 	 * 
 	 * @return Vector2 b
 	 */
 	public Vector2 getB() {
 		return b;
-	}
-
-	/**
-	 * Setter of point B.
-	 * 
-	 * @param b
-	 *            Vector2 of B
-	 */
-	public void setB(Vector2 b) {
-		this.b = b;
 	}
 
 }

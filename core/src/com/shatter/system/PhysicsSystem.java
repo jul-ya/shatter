@@ -1,15 +1,11 @@
 package com.shatter.system;
 
-import com.shatter.TheWorld;
+import com.shatter.World;
 import com.shatter.component.Bullet;
-import com.shatter.component.Collider;
 import com.shatter.component.Fracture;
 import com.shatter.component.Movement;
-import com.shatter.component.Physics;
 import com.shatter.component.Position;
 import com.shatter.component.Ship;
-
-import java.util.concurrent.TimeUnit;
 
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
@@ -25,12 +21,10 @@ import com.badlogic.gdx.math.Vector2;
 public class PhysicsSystem extends IteratingSystem {
 	private ComponentMapper<Movement> mm = ComponentMapper.getFor(Movement.class);
 	private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
-	// private ComponentMapper<Physics> phm =
-	// ComponentMapper.getFor(Physics.class);
 	protected Engine engine;
-	private TheWorld world;
+	private World world;
 
-	public PhysicsSystem(Engine engine, TheWorld world) {
+	public PhysicsSystem(Engine engine, World world) {
 		super(Family.all(Movement.class, Position.class).get());
 		this.engine = engine;
 		this.world = world;
@@ -45,29 +39,24 @@ public class PhysicsSystem extends IteratingSystem {
 				Entity ship = null;
 				Entity bullet = null;
 				Entity asteroid = null;
-				Vector2 sector = null;
-				
-				for(Entity e : entities){
-					if(e.getComponent(Bullet.class) != null)
+
+				for (Entity e : entities) {
+					if (e.getComponent(Bullet.class) != null)
 						bullet = e;
-					else if(e.getComponent(Ship.class) != null)
+					else if (e.getComponent(Ship.class) != null)
 						ship = e;
 					else
 						asteroid = e;
 				}
-				
-				if(ship != null){
+
+				if (ship != null) {
 					removeE(ship);
 				}
-				if(bullet != null){
-					Vector2 tmp = bullet.getComponent(Movement.class).vel.nor();
-					sector = new Vector2(-tmp.x, -tmp.y); // save inverted velocity as the sector to fracture
+				if (bullet != null) {
 					removeE(bullet);
 				}
-				if(asteroid != null){
-					if(sector != null){
-						createP(asteroid, sector);
-					}
+				if (asteroid != null) {
+					createP(asteroid);
 					removeE(asteroid);
 				}
 				return true;
@@ -80,7 +69,7 @@ public class PhysicsSystem extends IteratingSystem {
 		engine.removeEntity(e);
 	}
 
-	public void createP(Entity e, Vector2 sector) {
+	public void createP(Entity e) {
 		for (int i = 0; i < 100; i++) {
 			world.createParticle(e.getComponent(Position.class).pos.x, e.getComponent(Position.class).pos.y,
 					(float) (Math.random() * 360), (float) (Math.random() * 20));
@@ -88,13 +77,13 @@ public class PhysicsSystem extends IteratingSystem {
 		if (e.getComponent(Fracture.class) != null) {
 
 			Fracture fract = e.getComponent(Fracture.class);
-			
-			//TODO: sector fracturing!
-			
+
+			// TODO: sector fracturing?
+
 			// dynamic update test and time measuring
 			long startTime = System.nanoTime();
-			fract.triangulator.dynamicUpdatePoints(new Vector2[]{new Vector2(0, 0), new Vector2(0.5f, 0.5f)});
-			//fract.triangulator.dynamicUpdatePoint(new Vector2(0, 0));
+			fract.triangulator.dynamicUpdatePoints(new Vector2[] { new Vector2(0, 0), new Vector2(0.5f, 0.5f) });
+			// fract.triangulator.dynamicUpdatePoint(new Vector2(0, 0));
 			long stopTime = System.nanoTime();
 			System.out.println((stopTime - startTime) / 100000.0);
 
@@ -122,14 +111,5 @@ public class PhysicsSystem extends IteratingSystem {
 		p.pos.mulAdd(m.vel, deltaTime);
 		m.vel.mulAdd((m.acc).sub(damp), deltaTime);
 		p.angle += m.angVel * deltaTime;
-
-		/*
-		 * box2d physics Physics ph = phm.get(entity); if(ph != null){
-		 * ph.body.setLinearDamping(m.damp);
-		 * ph.body.setTransform(p.pos.mulAdd(m.vel, deltaTime), (float)
-		 * Math.toRadians(p.angle));
-		 * ph.body.setLinearVelocity(m.vel.mulAdd((m.acc).sub(damp),
-		 * deltaTime)); }
-		 */
 	}
 }

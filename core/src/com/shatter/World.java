@@ -8,32 +8,28 @@ import com.shatter.component.Collider;
 import com.shatter.component.Fracture;
 import com.shatter.component.Gun;
 import com.shatter.component.Movement;
-import com.shatter.component.Physics;
 import com.shatter.component.Position;
 import com.shatter.component.Ship;
 import com.shatter.component.Visual;
-import com.shatter.dt.DT;
+import com.shatter.dt.Triangulator;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.World;
 
 /**
  * This class represents the game world and is able to create certain entities.
  * 
- * @author Ju Lia
+ * @author Julia Angerer
+ * @version 1.0
  */
-public class TheWorld {
+public class World {
 
 	private Engine engine;
-	//private World pworld;
 	private Random rand = new Random();
 
-	public TheWorld(Engine engine/*, World pworld*/) {
+	public World(Engine engine) {
 		this.engine = engine;
-		//this.pworld = pworld;
 	}
 
 	/**
@@ -65,11 +61,6 @@ public class TheWorld {
 		c.setFlag(1);
 		c.setMask(2);
 		ship.add(c);
-		
-		/*Physics ph = new Physics();
-		ph.setBody(p.pos, pworld, v.VERTICES);
-		ph.body.setUserData(this);
-		ship.add(ph);*/
 
 		this.engine.addEntity(ship);
 		return ship;
@@ -106,11 +97,6 @@ public class TheWorld {
 		c.setFlag(4);
 		c.setMask(2);
 		bullet.add(c);
-		
-		/*Physics ph = new Physics();
-		ph.setBody(p.pos, pworld, v.VERTICES);
-		ph.body.setUserData(this);
-		bullet.add(ph);*/
 
 		this.engine.addEntity(bullet);
 		return bullet;
@@ -148,11 +134,6 @@ public class TheWorld {
 		Bullet b = new Bullet();
 		b.setLifeTime(lifetime / 80);
 		particle.add(b);
-		
-		/*Physics ph = new Physics();
-		ph.setBody(p.pos, pworld, v.VERTICES);
-		ph.body.setUserData(this);
-		particle.add(ph);*/
 
 		this.engine.addEntity(particle);
 		return particle;
@@ -203,7 +184,7 @@ public class TheWorld {
 		for (int i = 0; i < vertices.length / 2; i++) {
 			points.add(new Vector2(vertices[(i * 2)], vertices[(i * 2 + 1)]));
 		}
-		DT d = new DT(points);
+		Triangulator d = new Triangulator(points);
 		f.setTriangulator(d);
 		
 		System.out.println(d.getDTriangles().size());
@@ -215,11 +196,6 @@ public class TheWorld {
 		c.setFlag(2);
 		c.setMask(5);
 		asteroid.add(c);
-		
-		/*Physics ph = new Physics();
-		ph.setBody(p.pos, pworld, v.VERTICES);
-		ph.body.setUserData(this);
-		asteroid.add(ph);*/
 
 		this.engine.addEntity(asteroid);
 		return asteroid;
@@ -256,11 +232,6 @@ public class TheWorld {
 		c.setFlag(2);
 		c.setMask(5);
 		asteroid.add(c);
-		
-		/*Physics ph = new Physics();
-		ph.setBody(p.pos, pworld, v.VERTICES);
-		ph.body.setUserData(this);
-		asteroid.add(ph);*/
 
 		this.engine.addEntity(asteroid);
 		return asteroid;

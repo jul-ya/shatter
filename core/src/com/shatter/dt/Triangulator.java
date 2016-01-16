@@ -3,41 +3,38 @@ package com.shatter.dt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Random;
 
 import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
 
 /**
- * This class constructs a delaunay triangulation of a given mesh, which is the
- * dual graph of a voronoi diagram. The algorithm used is called
- * BowyerWatson-Algorithm and has a runtime complexity of O(n^2). As it is an
- * incremental approach, new points can simply be generated and added to the
- * triangulation. A voronoi diagram can be generated out of this triangulation.
+ * This class constructs a delaunay triangulation of a given 2D mesh outline,
+ * the algorithm used is called Bowyer-Watson-Algorithm. As it is an incremental
+ * approach, new points can simply be generated and added to the triangulation.
+ * A voronoi diagram can be generated out of this triangulation, clipped to the
+ * 2D point set given.
  * 
- * references used constructing the main algorithm implementation:
- * https://takisword.wordpress.com/2009/08/13/bowyerwatson-algorithm/
- * https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm
- * http://www.cs.cornell.edu/info/people/chew/delaunay.html
- * http://paulbourke.net/papers/triangulate/
+ * References used constructing the main algorithm implementation:
+ * > https://takisword.wordpress.com/2009/08/13/bowyerwatson-algorithm/
+ * > https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm
+ * > Sloan and Houlsby in „An implementation of Watson’s algorithm for computing
+ * 2-dimensional Delaunay triangulations“, Advances in Engineering Software
  * 
- * @author Ju Lia
+ * @author Julia Angerer
  * @version 1.0
- * @since 2015-14-11
  */
-public class DT {
+public class Triangulator {
 
 	/**
-	 * All points to be triangulated, unsorted but in ccw order.
+	 * The outline points first to be triangulated, unsorted.
 	 */
-	private ArrayList<Vector2> points;
+	private ArrayList<Vector2> outlinePoints;
 
 	/**
-	 * All points to be triangulated, sorted by x values.
+	 * All points to be triangulated, will be sorted for the first triangulation
+	 * by x values.
 	 */
-	private ArrayList<Vector2> sortedPoints;
+	private ArrayList<Vector2> allPoints;
 
 	/**
 	 * The dynamically added points that form in the game.
@@ -65,27 +62,43 @@ public class DT {
 	 */
 	private ArrayList<float[]> vDiagram = new ArrayList<float[]>();
 
+	/**
+	 * The extremes of the outlinePoints.
+	 */
+	private float[] extremes;
+
+	/**
+	 * Getter for the delaunay triangulation.
+	 * 
+	 * @return ArrayList<Triangle> the DT
+	 */
 	public ArrayList<Triangle> getDTriangles() {
 		return dTriangles;
 	}
 
+	/**
+	 * Getter for the voronoi diagram.
+	 * 
+	 * @return ArrayList<float[]> the VD
+	 */
 	public ArrayList<float[]> getVDiagram() {
 		return vDiagram;
 	}
 
 	/**
-	 * The constructor for the DT.
+	 * The constructor for the Triangulator.
 	 * 
 	 * @param points
 	 *            The set of points given.
 	 */
 	@SuppressWarnings("unchecked")
-	public DT(ArrayList<Vector2> points) {
-		this.points = points;
+	public Triangulator(ArrayList<Vector2> outlinePoints) {
+		// save the outline points
+		this.outlinePoints = outlinePoints;
 
-		// pre-sort the points on x-axis
-		this.sortedPoints = (ArrayList<Vector2>) points.clone();
-		Collections.sort(sortedPoints, new Comparator<Vector2>() {
+		// sort the points on x-axis
+		this.allPoints = (ArrayList<Vector2>) outlinePoints.clone();
+		Collections.sort(allPoints, new Comparator<Vector2>() {
 
 			@Override
 			public int compare(Vector2 arg0, Vector2 arg1) {
@@ -100,7 +113,15 @@ public class DT {
 
 		});
 
-		getDT();
+		// save the outline extremes
+		this.extremes = getMinMax(outlinePoints);
+
+		// first calculation of DT and VD, exception handling
+		try {
+			getDT();
+		} catch (NotEnoughPointsException e) {
+			e.printStackTrace();
+		}
 		getVD();
 	}
 
@@ -148,7 +169,6 @@ public class DT {
 	 */
 	private Triangle getSuperTriangle(ArrayList<Vector2> points) {
 
-		float[] extremes = getMinMax(points);
 		float xMin = extremes[0];
 		float yMin = extremes[1];
 		float xMax = extremes[2];
@@ -171,21 +191,25 @@ public class DT {
 	}
 
 	/**
-	 * The real DT calculation using Bowyer-Watson incremental algorithm happens
-	 * here.
+	 * The real delaunay triangulation calculation using Bowyer-Watson
+	 * incremental algorithm happens here.
 	 */
 	@SuppressWarnings("unchecked")
-	private void getDT() {
+	private void getDT() throws NotEnoughPointsException {
+
+		// throw exception if points < 3
+		if (allPoints.size() < 3)
+			throw new NotEnoughPointsException("There must be at least 3 points to triangulate!");
 
 		// triangle buffer, containing current valid triangles
 		dTriangles = new ArrayList<Triangle>();
 
 		// add the superTriangle to the buffer
-		superT = getSuperTriangle(sortedPoints);
+		superT = getSuperTriangle(allPoints);
 		dTriangles.add(superT);
 
 		// for each point in the point set
-		for (Vector2 vertex : sortedPoints) {
+		for (Vector2 vertex : allPoints) {
 			// would be O(n^2) - optimized by sorting points along the x-axis
 			// and only cc check the triangles on the right = now O(n^1.5)
 			dTriangles = addPoint(vertex, dTriangles);
@@ -247,7 +271,7 @@ public class DT {
 
 		// now build new triangles from edgebuffer edges
 		for (Edge e : edgeBuffer) {
-			triangles.add(new Triangle(e.a, e.b, point));
+			triangles.add(new Triangle(e.getA(), e.getB(), point));
 		}
 
 		return triangles;
@@ -301,7 +325,7 @@ public class DT {
 		// initialize convex hull calculator
 		ConvexHull hull = new ConvexHull();
 
-		for (Vector2 vertex : points) {
+		for (Vector2 vertex : allPoints) {
 
 			// create point list from this list
 			ArrayList<Triangle> trianglesAll = new ArrayList<Triangle>();
@@ -343,13 +367,17 @@ public class DT {
 
 				// clipping the vertices outside the polygon - just for the
 				// original outline points
-				if (!dynamicPoints.contains(vertex) && !pointInsidePolygon(points, vPoint)) {
+				if (!dynamicPoints.contains(vertex) && !pointInsidePolygon(outlinePoints, vPoint)) {
 					float distance = 0;
 
 					// find nearest midpoint in triangle in set
 					for (int j = 0; j < trianglesInner.size(); j++) {
 
-						Vector2[] midpoints = trianglesInner.get(j).getMidpoints();
+						if (trianglesInner.get(j).getMidPoints() == null) {
+							trianglesInner.get(j).calcMidPoints();
+						}
+
+						Vector2[] midpoints = trianglesInner.get(j).getMidPoints();
 						for (int k = 0; k < midpoints.length; k++) {
 							if (distance > midpoints[k].dst(vPoint) || distance == 0) {
 								distance = midpoints[k].dst(vPoint);
@@ -384,9 +412,9 @@ public class DT {
 			T.resetCompleted(); // reset the complete flags
 		}
 
-		if (pointInsidePolygon(points, newP)) {
-			// add point to original point list
-			points.add(newP);
+		if (pointInsidePolygon(outlinePoints, newP)) {
+			// add point to point list
+			allPoints.add(newP);
 			// save point in this list too to differentiate from other points
 			dynamicPoints.add(newP);
 
@@ -421,9 +449,9 @@ public class DT {
 		}
 
 		for (int i = 0; i < newPoints.length; i++) {
-			if (pointInsidePolygon(points, newPoints[i])) {
-				// add point to original point list
-				points.add(newPoints[i]);
+			if (pointInsidePolygon(outlinePoints, newPoints[i])) {
+				// add point to point list
+				allPoints.add(newPoints[i]);
 				// save point in this list too to differentiate from other
 				// points
 				dynamicPoints.add(newPoints[i]);
@@ -457,7 +485,6 @@ public class DT {
 	 */
 	public boolean pointInsidePolygon(ArrayList<Vector2> points, Vector2 testPoint) {
 
-		float[] extremes = getMinMax(points);
 		float xMin = extremes[0];
 		float yMin = extremes[1];
 		float xMax = extremes[2];

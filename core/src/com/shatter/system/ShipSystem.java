@@ -1,6 +1,6 @@
 package com.shatter.system;
 
-import com.shatter.TheWorld;
+import com.shatter.World;
 import com.shatter.component.Movement;
 import com.shatter.component.Position;
 import com.shatter.component.Ship;
@@ -17,9 +17,9 @@ public class ShipSystem extends IteratingSystem {
 	private ComponentMapper<Movement> mm = ComponentMapper.getFor(Movement.class);
 	private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
 	private ComponentMapper<Ship> sm = ComponentMapper.getFor(Ship.class);
-	private TheWorld world;
+	private World world;
 
-	public ShipSystem(TheWorld world) {
+	public ShipSystem(World world) {
 		super(Family.all(Movement.class, Ship.class, Position.class).get());
 		this.world = world;
 	}
