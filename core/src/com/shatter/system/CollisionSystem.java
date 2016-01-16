@@ -14,8 +14,8 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
+//import com.badlogic.gdx.Gdx;
+//import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Timer;
@@ -36,7 +36,7 @@ public class CollisionSystem extends EntitySystem {
 	private Engine engine;
 	private World world;
 	private int pointCount = 10;
-	private FileHandle logFile = Gdx.files.local("log.ser");
+	//private FileHandle logFile = Gdx.files.local("log.ser");
 
 	/**
 	 * The constructor of this entitysystem.
@@ -178,11 +178,11 @@ public class CollisionSystem extends EntitySystem {
 			}
 
 			// dynamic update test and time measuring
-			long startTime = System.nanoTime();
+			//long startTime = System.nanoTime();
 			fract.triangulator.dynamicUpdatePoints(p);
-			long stopTime = System.nanoTime();
-			logFile.writeString("" + ((stopTime - startTime) / 1000000.0), true);
-			logFile.writeString("\n", true);
+			//long stopTime = System.nanoTime();
+			//logFile.writeString("" + ((stopTime - startTime) / 1000000.0), true);
+			//logFile.writeString("\n", true);
 
 			// it was a big one with voronoi cells, spawn new fractures and
 			// remove them within 5 seconds
