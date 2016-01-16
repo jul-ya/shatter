@@ -186,9 +186,6 @@ public class World {
 		}
 		Triangulator d = new Triangulator(points);
 		f.setTriangulator(d);
-		
-		System.out.println(d.getDTriangles().size());
-		System.out.println(d.getVDiagram().size());
 		asteroid.add(f);
 
 		Collider c = new Collider();
@@ -226,12 +223,6 @@ public class World {
 		v.setVERTICES(vertices);
 		v.setCOLOR(Color.BLACK);
 		asteroid.add(v);
-
-		Collider c = new Collider();
-		c.setRadius(1f);
-		c.setFlag(2);
-		c.setMask(5);
-		asteroid.add(c);
 
 		this.engine.addEntity(asteroid);
 		return asteroid;

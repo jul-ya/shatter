@@ -37,11 +37,6 @@ public class Triangulator {
 	private ArrayList<Vector2> allPoints;
 
 	/**
-	 * The dynamically added points that form in the game.
-	 */
-	private ArrayList<Vector2> dynamicPoints = new ArrayList<Vector2>();
-
-	/**
 	 * The supertriangle for the given point set.
 	 */
 	private Triangle superT;
@@ -286,7 +281,7 @@ public class Triangulator {
 	 */
 	private ArrayList<Edge> removeDuplicateEdges(ArrayList<Edge> edges) {
 
-		// TODO: optimize from O(n^2) to O(n) with hash map?
+		// could be optimized from O(n^2) to O(n) with hash map
 		ArrayList<Edge> newEdges = new ArrayList<Edge>();
 
 		// iterate over all edges
@@ -338,12 +333,10 @@ public class Triangulator {
 			for (Triangle triangle : dTrianglesAll) {
 				if (triangle.containsPoint(vertex)) {
 					trianglesAll.add(triangle);
-
-					if (!dynamicPoints.contains(vertex)) {
-						// also fill the clipping list
-						if (dTriangles.contains(triangle)) {
-							trianglesInner.add(triangle);
-						}
+					
+					// also fill the clipping list
+					if (dTriangles.contains(triangle)) {
+						trianglesInner.add(triangle);
 					}
 				}
 			}
@@ -351,7 +344,7 @@ public class Triangulator {
 			// initialize the cell vertex array (leave space for the original
 			// vertex too - just if it's an outline point)
 			float vertices[];
-			if (!dynamicPoints.contains(vertex)) {
+			if (outlinePoints.contains(vertex)) {
 				vertices = new float[trianglesAll.size() * 2 + 2];
 				vertices[vertices.length - 2] = vertex.x;
 				vertices[vertices.length - 1] = vertex.y;
@@ -367,7 +360,7 @@ public class Triangulator {
 
 				// clipping the vertices outside the polygon - just for the
 				// original outline points
-				if (!dynamicPoints.contains(vertex) && !pointInsidePolygon(outlinePoints, vPoint)) {
+				if (!pointInsidePolygon(outlinePoints, vPoint)) {
 					float distance = 0;
 
 					// find nearest midpoint in triangle in set
@@ -412,11 +405,9 @@ public class Triangulator {
 			T.resetCompleted(); // reset the complete flags
 		}
 
-		if (pointInsidePolygon(outlinePoints, newP)) {
-			// add point to point list
+		if (pointInsidePolygon(outlinePoints, newP) && !allPoints.contains(newP)) {
+			// add new point to point list
 			allPoints.add(newP);
-			// save point in this list too to differentiate from other points
-			dynamicPoints.add(newP);
 
 			// add point incrementally to the triangulation set and update the
 			// triangle list accordingly
@@ -449,12 +440,9 @@ public class Triangulator {
 		}
 
 		for (int i = 0; i < newPoints.length; i++) {
-			if (pointInsidePolygon(outlinePoints, newPoints[i])) {
-				// add point to point list
+			if (pointInsidePolygon(outlinePoints, newPoints[i]) && !allPoints.contains(newPoints[i])) {
+				// add new point to point list
 				allPoints.add(newPoints[i]);
-				// save point in this list too to differentiate from other
-				// points
-				dynamicPoints.add(newPoints[i]);
 				// add point incrementally to the triangulation set
 				dTrianglesAll = addPoint(newPoints[i], dTrianglesAll);
 			}
