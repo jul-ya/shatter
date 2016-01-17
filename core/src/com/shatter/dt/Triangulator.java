@@ -440,12 +440,12 @@ public class Triangulator {
 		// sort the new points
 		Collections.sort(newPoints, comparator);
 
-		for (int i = 0; i < newPoints.size(); i++) {
-			if (pointInsidePolygon(outlinePoints, newPoints.get(i)) && !allPoints.contains(newPoints.get(i))) {
+		for (Vector2 point : newPoints) {
+			if (pointInsidePolygon(outlinePoints, point) && !allPoints.contains(point)) {
 				// add new point to point list
-				allPoints.add(newPoints.get(i));
+				allPoints.add(point);
 				// add point incrementally to the triangulation set
-				dTrianglesAll = addPoint(newPoints.get(i), dTrianglesAll);
+				dTrianglesAll = addPoint(point, dTrianglesAll);
 			}
 		}
 
