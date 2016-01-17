@@ -2,7 +2,6 @@ package com.shatter.dt;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 
 import com.badlogic.gdx.math.ConvexHull;
 import com.badlogic.gdx.math.Vector2;
@@ -55,12 +54,17 @@ public class Triangulator {
 	/**
 	 * The list of Voronoi diagram cells.
 	 */
-	private ArrayList<float[]> vDiagram = new ArrayList<float[]>();
+	private ArrayList<float[]> vDiagram;
 
 	/**
 	 * The extremes of the outlinePoints.
 	 */
 	private float[] extremes;
+	
+	/**
+	 * The comparator used for pre-sorting the points.
+	 */
+	private XAxisComparator comparator;
 
 	/**
 	 * Getter for the delaunay triangulation.
@@ -93,23 +97,14 @@ public class Triangulator {
 
 		// sort the points on x-axis
 		this.allPoints = (ArrayList<Vector2>) outlinePoints.clone();
-		Collections.sort(allPoints, new Comparator<Vector2>() {
-
-			@Override
-			public int compare(Vector2 arg0, Vector2 arg1) {
-				if (arg0.x < arg1.x) {
-					return -1;
-				} else if (arg0.x == arg1.x) {
-					return 0;
-				} else {
-					return 1;
-				}
-			}
-
-		});
+		this.comparator = new XAxisComparator();
+		Collections.sort(allPoints, comparator);
 
 		// save the outline extremes
 		this.extremes = getMinMax(outlinePoints);
+		
+		//initialize the voronoi region list
+		this.vDiagram = new ArrayList<float[]>();
 
 		// first calculation of DT and VD, exception handling
 		try {
@@ -421,6 +416,9 @@ public class Triangulator {
 
 			// recalculate the voronoi diagram
 			getVD();
+			
+			// sort all the points again
+			Collections.sort(allPoints, comparator);
 		}
 	}
 
@@ -433,18 +431,21 @@ public class Triangulator {
 	 *            the points to be added
 	 */
 	@SuppressWarnings("unchecked")
-	public void dynamicUpdatePoints(Vector2[] newPoints) {
+	public void dynamicUpdatePoints(ArrayList<Vector2> newPoints) {
 
 		for (Triangle T : dTrianglesAll) {
 			T.resetCompleted(); // reset the complete flags
 		}
+		
+		// sort the new points
+		Collections.sort(newPoints, comparator);
 
-		for (int i = 0; i < newPoints.length; i++) {
-			if (pointInsidePolygon(outlinePoints, newPoints[i]) && !allPoints.contains(newPoints[i])) {
+		for (int i = 0; i < newPoints.size(); i++) {
+			if (pointInsidePolygon(outlinePoints, newPoints.get(i)) && !allPoints.contains(newPoints.get(i))) {
 				// add new point to point list
-				allPoints.add(newPoints[i]);
+				allPoints.add(newPoints.get(i));
 				// add point incrementally to the triangulation set
-				dTrianglesAll = addPoint(newPoints[i], dTrianglesAll);
+				dTrianglesAll = addPoint(newPoints.get(i), dTrianglesAll);
 			}
 		}
 
@@ -458,6 +459,9 @@ public class Triangulator {
 
 		// recalculate the voronoi diagram
 		getVD();
+		
+		// sort all the points again
+		Collections.sort(allPoints, comparator);
 	}
 
 	/**

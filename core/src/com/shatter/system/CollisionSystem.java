@@ -7,6 +7,8 @@ import com.shatter.component.Fracture;
 import com.shatter.component.Movement;
 import com.shatter.component.Position;
 import com.shatter.component.Ship;
+
+import java.util.ArrayList;
 import java.util.Random;
 import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
@@ -163,9 +165,9 @@ public class CollisionSystem extends EntitySystem {
 			Fracture fract = asteroid.getComponent(Fracture.class);
 
 			// sector fracturing
-			Vector2[] p = new Vector2[pointCount];
+			ArrayList<Vector2> p = new ArrayList<Vector2>();
 			Random rand = new Random();
-			for (int i = 0; i < p.length; i++) {
+			for (int i = 0; i < pointCount; i++) {
 				float x = rand.nextFloat() * 1.2f;
 				float y = rand.nextFloat() * 1.2f;
 				if (bulletDirection.x > 0) {
@@ -174,7 +176,7 @@ public class CollisionSystem extends EntitySystem {
 				if (bulletDirection.y > 0) {
 					y = -y; // invert bulletDirection y
 				}
-				p[i] = new Vector2(x, y);
+				p.add(new Vector2(x, y));
 			}
 
 			// dynamic update test and time measuring
@@ -182,6 +184,7 @@ public class CollisionSystem extends EntitySystem {
 			fract.triangulator.dynamicUpdatePoints(p);
 			//long stopTime = System.nanoTime();
 			//logFile.writeString("" + ((stopTime - startTime) / 1000000.0), true);
+			//logFile.writeString("" + Gdx.graphics.getFramesPerSecond(), true);
 			//logFile.writeString("\n", true);
 
 			// it was a big one with voronoi cells, spawn new fractures and
